@@ -1,3 +1,9 @@
+<div style="display:flex;">
+  <img src="./Capturas de Pantalla/Logo.png" style="width: 108px;">
+</div>
+
+# Escrcpy
+
 # Notificador de Conexión para Windows
 
 ## Descripción
