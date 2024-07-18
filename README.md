@@ -2,9 +2,14 @@
   <img src="./Capturas de Pantalla/Logo.png" style="width: 108px;">
 </div>
 
-# Escrcpy
-
 # Notificador de Conexión para Windows
+
+# Capturas de Pantalla
+
+<div style="display:flex;">
+  <img src="./Capturas de Pantalla/1.png" style="width: 100%;">
+  <img src="./Capturas de Pantalla/2.png" style="width: 100%;">
+</div>
 
 ## Descripción
 
