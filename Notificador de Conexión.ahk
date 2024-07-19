@@ -2899,14 +2899,19 @@ AHK_NOTIFYICON(wParam, lParam, *)
 		}
 	}
 }
-
-if ProcessExist("Actualizar.exe")
-	ProcessClose "Actualizar.exe"
-
+	
 try
 {
 	if FileExist("Actualizar.exe.new")
+	{
+		if ProcessExist("Actualizar.exe")
+		{
+			ProcessClose "Actualizar.exe"
+			ProcessWaitClose("Actualizar.exe", 10)
+		}
+		
 		FileMove A_WorkingDir "\Actualizar.exe.new", A_WorkingDir "\Actualizar.exe", 1
+	}
 }
 	
 SetTimer VerefyConx, (VerificarConxCada * 1000)

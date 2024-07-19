@@ -21,14 +21,17 @@ try
 		FileMove A_WorkingDir "\temp\Actualizar.exe", A_WorkingDir "\Actualizar.exe.new", 1
 		FileCopy A_WorkingDir "\temp\*.*", A_WorkingDir, 1
 		DirDelete "temp", true
+		Msgbox("Notificador de Conexión: Se ha actualizado correctamente.", "Buscar Actualización", "T5 32")
 		Run "Notificador de Conexión.exe"
-		Msgbox("Notificador de Conexión: Se ha actualizado correctamente.", "Buscar Actualización", "32")
 	}
 	Else
 	{
+		Msgbox("La descarga de la actualización ha fallado intente de nuevo.", "Buscar Actualización", "T5 16")
 		Run "Notificador de Conexión.exe"
-		Msgbox("La descarga de la actualización ha fallado intente de nuevo.", "Buscar Actualización", "16")
 	}
 }
 catch
-	Msgbox("La descarga de la actualización ha fallado intente de nuevo.", "Buscar Actualización", "16")
+{
+	Msgbox("La descarga de la actualización ha fallado intente de nuevo.", "Buscar Actualización", "T5 16")
+	Run "Notificador de Conexión.exe"
+}
