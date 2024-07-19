@@ -412,7 +412,7 @@ A_TrayMenu.Add("Buscar Actualización", MenuHandler)
 Try
 	A_TrayMenu.SetIcon("Buscar Actualización", "shell32.dll", 222)
 	
-;A_TrayMenu.Disable("Buscar Actualización")
+A_TrayMenu.Disable("Buscar Actualización")
 	
 A_TrayMenu.Add()
 A_TrayMenu.Add("Salir", MenuHandler) 
