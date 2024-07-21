@@ -9,12 +9,12 @@ A_TrayMenu.Delete()
 SetTitleMatchMode 2
 
 ; <for compiled scripts>
-;@Ahk2Exe-SetFileVersion 1.1.0
+;@Ahk2Exe-SetFileVersion 1.2.0
 ;@Ahk2Exe-SetDescription Notificador de Conexión
 ; </for compiled scripts>
 
 
-global Version := "v1.1.0"
+global Version := "v1.2.0"
 global IniciarConWindows := 0
 global DarkMode := 0
 global ActIni := 1
