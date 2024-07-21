@@ -1228,22 +1228,42 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 					Popup_BtnYes(*)
 					{
 						WinClose Popup.Title
-						try
+						if (latestObj.downloadURLs.Length != 0)
 						{
-							latestprevObj := Github.historicReleases(usr, repo)
-							if (latestprevObj[2].version = Version)
+							try
 							{
-								archivodownload := latestObj.downloadURLs[2]
+								if (latestObj.downloadURLs.Length = 1)
+									archivodownload := latestObj.downloadURLs[1]
+								else
+								{
+									latestprevObj := Github.historicReleases(usr, repo)
+									
+									if (latestprevObj[2].version = Version)
+										namearchive := "Actualizacion"
+									else
+										namearchive := "Completa"
+										
+									Loop latestObj.downloadURLs.Length
+									{
+										if (latestObj.downloadURLs[A_Index] ~= namearchive)
+										{
+											archivodownload := latestObj.downloadURLs[A_Index]
+											break
+										}
+									}
+									
+								}
+								
+								Github.Download(archivodownload, A_ScriptDir "\Descarga")
+								Run "Actualizar.exe"
+								ExitApp
 							}
-							else
-								archivodownload := latestObj.downloadURLs[1]
-							
-							Github.Download(archivodownload, A_ScriptDir "\Descarga")
-							Run "Actualizar.exe"
-							ExitApp
+							catch
+								Msgbox(LenguajeList.Mensajes["Msgbox1"], LenguajeList.BarraMenu["BuscarActualizacion"], "16")
 						}
-						catch
+						else
 							Msgbox(LenguajeList.Mensajes["Msgbox1"], LenguajeList.BarraMenu["BuscarActualizacion"], "16")
+						
 					}
 					
 					Popup_BClose(*)
