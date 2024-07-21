@@ -915,7 +915,7 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 			global EditPassword1
 			global EditUser2
 			global EditPassword2
-			global SegundaCuenta
+			global UsarSegundaCuenta
 			
 			global DataPers 
 			global EditDataPers
@@ -925,7 +925,7 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 
 			if !DataPers
 			{
-				if !SegundaCuenta
+				if !UsarSegundaCuenta
 				{
 					if (EditUser1 = "" or EditPassword1 = "")
 						return
