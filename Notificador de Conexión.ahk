@@ -9,12 +9,12 @@ A_TrayMenu.Delete()
 SetTitleMatchMode 2
 
 ; <for compiled scripts>
-;@Ahk2Exe-SetFileVersion 1.2.0
+;@Ahk2Exe-SetFileVersion 1.3.0
 ;@Ahk2Exe-SetDescription Notificador de Conexión
 ; </for compiled scripts>
 
 
-global Version := "v1.2.0"
+global Version := "v1.3.0"
 global IniciarConWindows := 0
 global DarkMode := 0
 global ActIni := 1
@@ -422,7 +422,8 @@ LangCreate(*)
 		TrayTip14=The connection has been lost.
 		Msgbox1=Update download failed, please try again.
 		Msgbox2=Changes have been saved.
-
+		Msgbox3=Connection Notifier: Updated successfully.
+		
 		[MenuBar]
 		Restart=Restart
 		Pause=Pause
@@ -562,6 +563,7 @@ LangCreate(*)
 		TrayTip14=Se ha perdido la conexión.
 		Msgbox1=La descarga de la actualización ha fallado intente de nuevo.
 		Msgbox2=Se han guardado los cambios.
+		Msgbox3=Notificador de Conexión: Se ha actualizado correctamente.
 
 		[BarraMenu]
 		Reiniciar=Reiniciar
@@ -738,7 +740,7 @@ LangChange(Lang, *)
 		NumSection := A_Index
 		
 		if (NumSection = 1)
-			KeysInScript :=	["IconTip1","IconTip2","IconTip21","IconTip3","IconTip4","IconTip5","IconTip6","IconTip7","IconTip8","IconTip9","IconTip10","IconTip11","TrayTip1","TrayTip2","TrayTip3","TrayTip4","TrayTip5","TrayTip6","TrayTip7","TrayTip8","TrayTip9","TrayTip10","TrayTip11","TrayTip12","TrayTip13","TrayTip14","Msgbox1","Msgbox2"]
+			KeysInScript :=	["IconTip1","IconTip2","IconTip21","IconTip3","IconTip4","IconTip5","IconTip6","IconTip7","IconTip8","IconTip9","IconTip10","IconTip11","TrayTip1","TrayTip2","TrayTip3","TrayTip4","TrayTip5","TrayTip6","TrayTip7","TrayTip8","TrayTip9","TrayTip10","TrayTip11","TrayTip12","TrayTip13","TrayTip14","Msgbox1","Msgbox2", "Msgbox3"]
 		else if (NumSection = 2)
 			KeysInScript :=	["Reiniciar","Pausar","PonerCuenta","QuitarCuenta","PonerTemporizador","QuitarTemporizador","Configuracion","BuscarActualizacion","Salir"]
 		else if (NumSection = 3)
@@ -1238,7 +1240,17 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 								{
 									latestprevObj := Github.historicReleases(usr, repo)
 									
-									if (latestprevObj[2].version = Version)
+									latestprevversion := latestObj.version
+									Loop latestprevObj.Length
+									{
+										if (latestprevObj[A_Index].version != latestObj.version)
+										{
+											latestprevversion := latestprevObj[A_Index].version
+											break
+										}
+									}
+									
+									if (latestprevversion = Version)
 										namearchive := "Actualizacion"
 									else
 										namearchive := "Completa"
@@ -1255,7 +1267,8 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 								}
 								
 								Github.Download(archivodownload, A_ScriptDir "\Descarga")
-								Run "Actualizar.exe"
+								
+								Run "Actualizar.exe " '"' LenguajeList.Mensajes["Msgbox1"] '" "' LenguajeList.BarraMenu["BuscarActualizacion"] '" "' LenguajeList.Mensajes["Msgbox3"] '"'
 								ExitApp
 							}
 							catch
