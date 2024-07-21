@@ -213,7 +213,12 @@ if FileExist("options.ini")
 			case "PosVGif1", "PosVGif2", "PosVGif3", "PosVGif4":
 			{
 				try
+				{
+					prevHW := A_DetectHiddenWindows
+					DetectHiddenWindows true
 					WinGetPos ,,, &H, "ahk_class Shell_TrayWnd"
+					DetectHiddenWindows prevHW
+				}
 				catch
 					H := 48
 				
@@ -668,19 +673,54 @@ LangCreate(*)
 
 if (LenguajeText = "")
 {
-	PredLang := RegRead("HKEY_CURRENT_USER\Control Panel\Desktop", "PreferredUILanguages")
-	PredLang := RTrim(PredLang, "`n")
-
-	Loop Files "Lenguajes\*.ini"
+	PredLang := ""
+	LenguajeTextAux := ""
+	try
 	{
-		if (A_LoopFileName ~= PredLang)
+		PredLang := RegRead("HKEY_CURRENT_USER\Control Panel\Desktop", "PreferredUILanguages")
+		PredLang := RTrim(PredLang, "`n")
+	}
+	catch
+	{
+		try
 		{
-			LenguajeText := A_LoopFileName
-			break
+			Loop Reg "HKEY_CURRENT_USER\Control Panel\Desktop\LanguageConfiguration", "VK"
+			{
+				PredLang := A_LoopRegName
+				break
+			}
+			PredLang := RTrim(PredLang, "`n")
+		}
+		
+	}
+	
+	if (PredLang = "")
+	{
+		try
+			PredLang := RegRead("HKEY_CURRENT_USER\Control Panel\International", "LocaleName")
+	
+		Loop Files "Lenguajes\*.ini"
+		{
+			if (A_LoopFileName ~= PredLang)
+			{
+				LenguajeText := A_LoopFileName
+				break
+			}
+			else if (A_LoopFileName ~= StrSplit(PredLang, "-", , 2)[1])
+			{
+				LenguajeTextAux := A_LoopFileName
+			}
 		}
 	}
-	if (LenguajeText = "")
+	
+	if (LenguajeText = "" and LenguajeTextAux = "")
+	{
 		LenguajeText := "English [en-EN].ini"
+	}
+	else if (LenguajeText = "" and LenguajeTextAux != "")
+	{
+		LenguajeText := LenguajeTextAux
+	}	
 }
 
 LangChange(LenguajeText)
@@ -1131,7 +1171,6 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 			try
 			{
 				latestObj := Github.latest(usr, repo)
-			
 				
 				if (Version = latestObj.version)
 				{
@@ -1191,7 +1230,15 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 						WinClose Popup.Title
 						try
 						{
-							Github.Download(latestObj.downloadURLs[1], A_ScriptDir "\Descarga")
+							latestprevObj := Github.historicReleases(usr, repo)
+							if (latestprevObj[2].version = Version)
+							{
+								archivodownload := latestObj.downloadURLs[2]
+							}
+							else
+								archivodownload := latestObj.downloadURLs[1]
+							
+							Github.Download(archivodownload, A_ScriptDir "\Descarga")
 							Run "Actualizar.exe"
 							ExitApp
 						}
@@ -1511,9 +1558,7 @@ Settings(*)
 	Lenguajes := []
 	
 	Lenguaje := 1
-	PredLang := RegRead("HKEY_CURRENT_USER\Control Panel\Desktop", "PreferredUILanguages")
-	PredLang := RTrim(PredLang, "`n")
-
+	
 	Loop Files "Lenguajes\*.ini"
 	{
 		Lenguajes.InsertAt(0, A_LoopFileName)
@@ -2460,7 +2505,12 @@ Settings(*)
 	
 	;////// [Corrección de posición del GIF verticalmente]
 	try
+	{
+		prevHW := A_DetectHiddenWindows
+		DetectHiddenWindows true
 		WinGetPos ,,, &H, "ahk_class Shell_TrayWnd"
+		DetectHiddenWindows prevHW
+	}
 	catch
 		H := 48
 	MyTextPosVGif := MyGui.Add("Text","xs+15 yp+22", LenguajeList.GIF["AjustesTexto3"])
@@ -4613,7 +4663,12 @@ PlayGiftAction(GifSelectedText, EfectoEntradaGif, PosVGif, UpDownEfectoEntradaGi
 		
 		global EntradaGifNow := 1
 		try
+		{
+			prevHW := A_DetectHiddenWindows
+			DetectHiddenWindows true
 			WinGetPos ,,, &H, "ahk_class Shell_TrayWnd"
+			DetectHiddenWindows prevHW
+		}
 		catch
 			H := 48
 		FilePathPic := "Gifs/" GifSelectedText ".gif"
