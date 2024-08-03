@@ -2,19 +2,21 @@
 #Include "lib\Dark_MsgBox_v2.ahk"
 #Include "lib\Gdip_All.ahk"
 #Include "lib\github.ahk"
+#Include "lib\socket.ahk"
 pToken := Gdip_Startup()
 #Warn All, Off
 A_TrayMenu.Delete()
 
 SetTitleMatchMode 2
-
+SetControlDelay -1
+SetMouseDelay -1
 ; <for compiled scripts>
-;@Ahk2Exe-SetFileVersion 1.5.0
+;@Ahk2Exe-SetFileVersion 1.6.0
 ;@Ahk2Exe-SetDescription Notificador de Conexión
 ; </for compiled scripts>
 
-
-global Version := "v1.5.0"
+global Version := "v1.6.0"
+global WinAutoRunVerify := true
 global IniciarConWindows := 0
 global DarkMode := 0
 global ActIni := 1
@@ -168,111 +170,98 @@ global RetrasoNacional := 0
 global RetrasoDesconectado := 0
 global RetrasoError := 0
 
+global UserNameAccount := ""
+
+global client_data := ""
+global FuncIpTimer := Map()
+
+global ServerOnPort := 27015
+global TimeRed := 0
+global sockserver := 0
+global StartTime := 0
+
+
+;global TimeRedAdapters := 0
+;global IPAddOrRemove := ""
+
 
 if FileExist("options.ini")
 {
-	Text := IniRead("options.ini", "settings")
-	Loop parse, Text, "`n"
+	;///// [MyChecks]
+	MyChecks := ["IniciarConWindows", "DarkMode", "AbrirWebAlConectarse", "AbrirWebAlDesconocer", "AbrirWebAlDesconectarse", "AbrirWebAlError", "WebOption", "NotiConectado", "NotiNacional", "NotiDesconectado", "NotiError", "DataPers", "WebOffAccount", "IniFileReadTime", "WebConectado", "WebDesconocido", "WebDesconectado", "TemporizadorNotiTooltip", "TemporizadorNotiIcon", "TemporizadorNotiWindows", "NotiGifError", "NotiGifDesconectado", "NotiGifNacional", "NotiGifConectado", "NotiNormal", "ConectadoGif", "DesconocidoGif", "DesconectadoGif", "ErrorGif", "TamanodelGif1", "TamanodelGif2", "TamanodelGif3", "TamanodelGif4", "RelacionGif1", "RelacionGif2", "RelacionGif3", "RelacionGif4", "VoltearEntradaGif1", "VoltearSalidaGif1", "VoltearEntradaGif2", "VoltearSalidaGif2", "VoltearEntradaGif3", "VoltearSalidaGif3", "VoltearEntradaGif4", "VoltearSalidaGif4", "BarradeTareasGif1", "BarradeTareasGif2", "BarradeTareasGif3", "BarradeTareasGif4", "UsarSegundaCuenta", "ActIni", "TimeRed"]
+	
+	;///// [MyEdits]
+	MyEdits := ["WebAlConectarse", "WebAlDesconocer", "WebAlDesconectarse", "WebAlError", "SoundConectado", "SoundNacional", "SoundDesconectado", "SoundError", "EditConectado", "EditNacional", "EditDesconectado", "EditUser1", "EditPassword1", "EditDataPers", "EditWebOffAccount", "EditIniFileReadTime", "AnchoGif1", "AnchoGif2", "AnchoGif3", "AnchoGif4", "LargoGif1", "LargoGif2", "LargoGif3", "LargoGif4", "GifSelected1", "GifSelected2", "GifSelected3", "GifSelected4", "GifSelectedText1", "GifSelectedText2", "GifSelectedText3", "GifSelectedText4", "EditUser2", "EditPassword2", "LenguajeText", "DataSesion"]
+	
+	;///// [MyUpDown0-18]
+	MyUpDown1 := ["EfectoEntradaGif1", "EfectoEntradaGif2", "EfectoEntradaGif3", "EfectoEntradaGif4", "EfectoSalidaGif1", "EfectoSalidaGif2", "EfectoSalidaGif3", "EfectoSalidaGif4", "UpDownTiempoEntradaGif1", "UpDownTiempoEntradaGif2", "UpDownTiempoEntradaGif3", "UpDownTiempoEntradaGif4"]
+	
+	;///// [MyUpDown0-23]
+	MyUpDown2 := ["TemporizadorH"]
+	
+	;///// [MyUpDown0-59]
+	MyUpDown3 := ["TemporizadorM", "TemporizadorS"]
+	
+	;///// [MyUpDown1-100]
+	MyUpDown4 := ["VerificarConx", "VerificarPingCada", "VerificarConxCada"]
+	
+
+	;///// [MyUpDown0-100]
+	MyUpDown5 := ["PosVGif1", "PosVGif2", "PosVGif3", "PosVGif4"]
+	
+	;///// [MyUpDown200-5000]
+	MyUpDown6 := ["UpDownEfectoEntradaGif1", "UpDownEfectoEntradaGif2", "UpDownEfectoEntradaGif3", "UpDownEfectoEntradaGif4", "UpDownEfectoSalidaGif1", "UpDownEfectoSalidaGif2", "UpDownEfectoSalidaGif3", "UpDownEfectoSalidaGif4"]
+	
+	;///// [MyUpDown0-20000]
+	MyUpDown7 := ["RetrasoConectado", "RetrasoNacional", "RetrasoDesconectado", "RetrasoError"]
+	
+	;///// [MyUpDown1-65535]
+	MyUpDown8 := ["ServerOnPort"]
+	
+	
+	MapOptions := Map(1, MyChecks, 2, MyEdits, 3,  MyUpDown1, 4, MyUpDown2, 5, MyUpDown3, 6, MyUpDown4, 7, MyUpDown5, 8, MyUpDown6, 9, MyUpDown7, 10, MyUpDown8)
+	
+	
+	For Num, Options in MapOptions
 	{
-		ArrayText := StrSplit(A_LoopField, "=",, 2)
-		switch ArrayText[1]
+		For Key in Options
 		{
-			case "IniciarConWindows", "DarkMode", "AbrirWebAlConectarse", "AbrirWebAlDesconocer", "AbrirWebAlDesconectarse", "AbrirWebAlError", "WebOption", "NotiConectado", "NotiNacional", "NotiDesconectado", "NotiError", "DataPers", "WebOffAccount", "IniFileReadTime", "WebConectado", "WebDesconocido", "WebDesconectado", "TemporizadorNotiTooltip", "TemporizadorNotiIcon":
+			try
 			{
-				if (ArrayText[2] = 0 or ArrayText[2] = 1)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-	
-			}
-			case "TemporizadorNotiWindows", "NotiGifError", "NotiGifDesconectado", "NotiGifNacional", "NotiGifConectado", "NotiNormal", "ConectadoGif", "DesconocidoGif", "DesconectadoGif", "ErrorGif", "TamanodelGif1", "TamanodelGif2", "TamanodelGif3", "TamanodelGif4", "RelacionGif1", "RelacionGif2", "RelacionGif3", "RelacionGif4":
-			{
-				if (ArrayText[2] = 0 or ArrayText[2] = 1)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-	
-			}
-			case "WebAlConectarse", "WebAlDesconocer", "WebAlDesconectarse", "WebAlError", "SoundConectado", "SoundNacional", "SoundDesconectado", "SoundError", "EditConectado", "EditNacional", "EditDesconectado", "EditUser1", "EditPassword1", "EditDataPers", "EditWebOffAccount", "EditIniFileReadTime", "AnchoGif1", "AnchoGif2", "AnchoGif3", "AnchoGif4":
-				%ArrayText[1]% := ArrayText[2]
-			case "VerificarConx", "VerificarPingCada", "VerificarConxCada":
-			{
-				if (ArrayText[2] >= 1 and ArrayText[2] <= 100)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-			}
-			case "TemporizadorH":
-			{
-				if (ArrayText[2] >= 0 and ArrayText[2] <= 23)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-			}
-			case "TemporizadorM", "TemporizadorS":
-			{
-				if (ArrayText[2] >= 0 and ArrayText[2] <= 59)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-			}
-			case "PosVGif1", "PosVGif2", "PosVGif3", "PosVGif4":
-			{
-				try
-				{
-					prevHW := A_DetectHiddenWindows
-					DetectHiddenWindows true
-					WinGetPos ,,, &H, "ahk_class Shell_TrayWnd"
-					DetectHiddenWindows prevHW
-				}
-				catch
-					H := 48
+				Value := IniRead("options.ini", "settings", Key)
+				if (Num = 1)
+					if (Value != 0 and Value != 1)
+						Throw
+				else if (Num = 3)
+					if (Value < 0 or Value > 18)
+						Throw
+				else if (Num = 4)
+					if (Value < 0 or Value > 23)
+						Throw
+				else if (Num = 5)
+					if (Value < 0 or Value > 59)
+						Throw
+				else if (Num = 6)
+					if (Value < 1 or Value > 100)
+						Throw
+				else if (Num = 7)
+					if (Value < 0 or Value > 100)
+						Throw
+				else if (Num = 8)
+					if (Value < 200 or Value > 5000)
+						Throw
+				else if (Num = 9)
+					if (Value < 0 or Value > 20000)
+						Throw
+				else if (Num = 10)
+					if (Value < 1 or Value > 65535)
+						Throw
 				
-				if (ArrayText[2] >= 0 and ArrayText[2] <= H+12)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
+				%Key% := Value
 			}
-			case "LargoGif1", "LargoGif2", "LargoGif3", "LargoGif4", "GifSelected1", "GifSelected2", "GifSelected3", "GifSelected4", "GifSelectedText1", "GifSelectedText2", "GifSelectedText3", "GifSelectedText4", "EditUser2", "EditPassword2", "LenguajeText", "DataSesion":
-				%ArrayText[1]% := ArrayText[2]
-			case "EfectoEntradaGif1", "EfectoEntradaGif2", "EfectoEntradaGif3", "EfectoEntradaGif4", "EfectoSalidaGif1", "EfectoSalidaGif2", "EfectoSalidaGif3", "EfectoSalidaGif4":
-			{
-				if (ArrayText[2] >= 0 and ArrayText[2] <= 18)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-			}
-			case "UpDownEfectoEntradaGif1", "UpDownEfectoEntradaGif2", "UpDownEfectoEntradaGif3", "UpDownEfectoEntradaGif4", "UpDownEfectoSalidaGif1", "UpDownEfectoSalidaGif2", "UpDownEfectoSalidaGif3", "UpDownEfectoSalidaGif4":
-			{
-				if (ArrayText[2] >= 200 and ArrayText[2] <= 5000)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-			}
-			case "UpDownTiempoEntradaGif1", "UpDownTiempoEntradaGif2", "UpDownTiempoEntradaGif3", "UpDownTiempoEntradaGif4":
-			{
-				if (ArrayText[2] >= 0 and ArrayText[2] <= 20)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-			}
-			case "VoltearEntradaGif1", "VoltearSalidaGif1", "VoltearEntradaGif2", "VoltearSalidaGif2", "VoltearEntradaGif3", "VoltearSalidaGif3", "VoltearEntradaGif4", "VoltearSalidaGif4", "BarradeTareasGif1", "BarradeTareasGif2", "BarradeTareasGif3", "BarradeTareasGif4", "UsarSegundaCuenta", "ActIni":
-			{
-				if (ArrayText[2] = 0 or ArrayText[2] = 1)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-			}
-			case "RetrasoConectado", "RetrasoNacional", "RetrasoDesconectado", "RetrasoError":
-			{
-				if (ArrayText[2] >= 0 and ArrayText[2] <= 20000)
-					%ArrayText[1]% := ArrayText[2]
-				else
-					IniWrite %ArrayText[1]%, "options.ini", "settings", ArrayText[1]
-			}
+			catch
+				IniWrite %Key%, "options.ini", "settings", Key
 		}
-	
-		sleep(1)
 	}
 } else
 {
@@ -401,6 +390,8 @@ if FileExist("options.ini")
 	RetrasoNacional=0
 	RetrasoDesconectado=0
 	RetrasoError=0
+	ServerOnPort=27015
+	TimeRed=0
 	)"
 	
 	FileAppend options, "options.ini"
@@ -437,8 +428,8 @@ LangCreate(*)
 		TrayTip2=The account has no balance.
 		TrayTip3=There was some error when entering the account.
 		TrayTip4=There was an error setting the account. Try again.
-		TrayTip5=Has been successfully removed the account:
-		TrayTip6=There was an error while removing the account: 
+		TrayTip5=Has been successfully removed the account.
+		TrayTip6=There was an error while removing the account. 
 		TrayTip7=There was an error removing the account. Try again.
 		TrayTip8=The set time must be greater than 0.
 		TrayTip9=The countdown is almost over.
@@ -451,7 +442,19 @@ LangCreate(*)
 		Msgbox1=Update download failed, please try again.
 		Msgbox2=Changes have been saved.
 		Msgbox3=Connection Notifier: Updated successfully.
-		
+		Msgbox4=Saved!
+		Msgbox5=Alert!
+		Msgbox6=¡Error!
+		Msgbox7=Information!
+		Msgbox8=The ip range is invalid.
+		Msgbox9=It`s not valid.
+		Msgbox10=The prefix must be between 0-32.
+		Msgbox11=The prefix is ??not valid.
+		Msgbox12=The prefix cannot be empty (/).
+		Msgbox13=In a range (-) there cannot be a prefix (/).
+		Msgbox14=It cannot have empty spaces.
+		Msgbox15=The IP is repeated.
+
 		[MenuBar]
 		Restart=Restart
 		Pause=Pause
@@ -530,10 +533,12 @@ LangCreate(*)
 		AdvancedTexto4=Web to remove the account
 		AdvancedText5=Use "InternetAccount.ini"
 		TimerText1=Timer
-		TextTimer2=Remove account after:
 		TextTimer3=Show countdown on the Icon.
 		TextTimer4=Show countdown in Icon Info.
 		TextTimer5=Show countdown in a Notification.
+		NetTexto1=Network
+		RedTexto2=Port:
+		RedTexto3=Get time online:
 
 		[GIF]
 		ProfileTexto1=Profile
@@ -578,12 +583,12 @@ LangCreate(*)
 		IconTip9=Se ha detectado el portal cautivo.
 		IconTip10=Se ha perdido la conexión.
 		IconTip11=[Pausa]
-		TrayTip1=Se ha puesto correctamente la cuenta:
-		TrayTip2=No tiene saldo la cuenta:
-		TrayTip3=Hubo algun error al poner la cuenta:
+		TrayTip1=Se ha puesto correctamente la cuenta.
+		TrayTip2=No tiene saldo la cuenta.
+		TrayTip3=Hubo algun error al poner la cuenta.
 		TrayTip4=Hubo un error al poner la cuenta. Intentalo de nuevo.
-		TrayTip5=Se ha quitado correctamente la cuenta:
-		TrayTip6=Hubo algun error al quitar la cuenta:
+		TrayTip5=Se ha quitado correctamente la cuenta.
+		TrayTip6=Hubo algun error al quitar la cuenta.
 		TrayTip7=Hubo un error al quitar la cuenta. Intentalo de nuevo.
 		TrayTip8=El tiempo establecido debe de ser mayor que 0.
 		TrayTip9=La cuenta atras está al acabarse.
@@ -596,6 +601,18 @@ LangCreate(*)
 		Msgbox1=La descarga de la actualización ha fallado intente de nuevo.
 		Msgbox2=Se han guardado los cambios.
 		Msgbox3=Notificador de Conexión: Se ha actualizado correctamente.
+		Msgbox4=¡Guardado!
+		Msgbox5=¡Alerta!
+		Msgbox6=¡Error!
+		Msgbox7=¡Información!
+		Msgbox8=El rango de ip no es válido.
+		Msgbox9=No es válido.
+		Msgbox10=El prefijo debe de estar entre 0-32.
+		Msgbox11=El prefijo no es válido.
+		Msgbox12=El prefijo no puede estar vacio (/).
+		Msgbox13=En un rango (-) no puede haber prefijo (/).
+		Msgbox14=No puede tener espacios vacios.
+		Msgbox15=El Ip está repetido..
 
 		[BarraMenu]
 		Reiniciar=Reiniciar
@@ -675,10 +692,12 @@ LangCreate(*)
 		AvanzadoTexto4=Web para quitar la cuenta
 		AvanzadoTexto5=Utilizar "InternetAccount.ini"
 		TemporizadorTexto1=Temporizador
-		TemporizadorTexto2=Quitar la cuenta al cabo de:
 		TemporizadorTexto3=Mostar cuenta atras en el Icono.
 		TemporizadorTexto4=Mostar cuenta atras en la Info del Icono.
 		TemporizadorTexto5=Mostar cuenta atras en una Notificación.
+		RedTexto1=Red
+		RedTexto2=Puerto:
+		RedTexto3=Obtener tiempo mediante la Red:
 
 		[GIF]
 		PerfilTexto1=Perfil
@@ -778,7 +797,7 @@ LangChange(Lang, *)
 		NumSection := A_Index
 		
 		if (NumSection = 1)
-			KeysInScript :=	["IconTip1","IconTip2","IconTip21","IconTip3","IconTip4","IconTip5","IconTip6","IconTip7","IconTip8","IconTip9","IconTip10","IconTip11","TrayTip1","TrayTip2","TrayTip3","TrayTip4","TrayTip5","TrayTip6","TrayTip7","TrayTip8","TrayTip9","TrayTip10","TrayTip11","TrayTip12","TrayTip13","TrayTip14","TrayTip15","Msgbox1","Msgbox2", "Msgbox3"]
+			KeysInScript :=	["IconTip1","IconTip2","IconTip21","IconTip3","IconTip4","IconTip5","IconTip6","IconTip7","IconTip8","IconTip9","IconTip10","IconTip11","TrayTip1","TrayTip2","TrayTip3","TrayTip4","TrayTip5","TrayTip6","TrayTip7","TrayTip8","TrayTip9","TrayTip10","TrayTip11","TrayTip12","TrayTip13","TrayTip14","TrayTip15","Msgbox1","Msgbox2", "Msgbox3", "Msgbox4", "Msgbox5", "Msgbox6", "Msgbox7", "Msgbox8", "Msgbox9", "Msgbox10", "Msgbox11", "Msgbox12", "Msgbox13", "Msgbox14", "Msgbox15"]
 		else if (NumSection = 2)
 			KeysInScript :=	["Reiniciar","Pausar","PonerCuenta","QuitarCuenta","PonerTemporizador","QuitarTemporizador","Configuracion","BuscarActualizacion","Salir"]
 		else if (NumSection = 3)
@@ -788,7 +807,7 @@ LangChange(Lang, *)
 		else if (NumSection = 5)
 			KeysInScript :=	["BasicasTexto1","BasicasTexto2","BasicasTexto3","BasicasTexto4","BasicasTexto5","BasicasTexto6","BasicasTexto7","BasicasTexto8","BasicasTexto9","PingTexto1","PingTexto2","PingTexto3","PingTexto4","CuentaTexto1","CuentaTexto2","CuentaTexto3","CuentaTexto4","NotificacionesTexto1","NotificacionesTexto2","NotificacionesTexto3","NotificacionesTexto4","NotificacionesTexto5","NotificacionesTexto6","NotificacionesTexto7","NotificacionesTexto8","NotificacionesTexto9", "NotificacionesTexto10", "NotificacionesTexto11", "NotificacionesTexto12"]
 		else if (NumSection = 6)
-			KeysInScript :=	["PaginasWebTexto1","PaginasWebTexto2","PaginasWebTexto3","PaginasWebTexto4","PaginasWebTexto5","PaginasWebTexto6","PaginasWebTexto61","PaginasWebTexto7","AvanzadoTexto1","AvanzadoTexto2","AvanzadoTexto3","AvanzadoTexto4","AvanzadoTexto5","TemporizadorTexto1","TemporizadorTexto2","TemporizadorTexto3","TemporizadorTexto4","TemporizadorTexto5"]
+			KeysInScript :=	["PaginasWebTexto1","PaginasWebTexto2","PaginasWebTexto3","PaginasWebTexto4","PaginasWebTexto5","PaginasWebTexto6","PaginasWebTexto61","PaginasWebTexto7","AvanzadoTexto1","AvanzadoTexto2","AvanzadoTexto3","AvanzadoTexto4","AvanzadoTexto5","TemporizadorTexto1","TemporizadorTexto3","TemporizadorTexto4","TemporizadorTexto5","RedTexto1","RedTexto2","RedTexto3"]
 		else if (NumSection = 7)
 			KeysInScript :=	["PerfilTexto1","PerfilTexto2","PerfilTexto3","PerfilTexto4","PerfilTexto5","AjustesTexto1","AjustesTexto2","AjustesTexto3","AjustesTexto4","AjustesTexto5","AjustesTexto6","AjustesTexto7","EfectosTexto1","EfectosTexto2","EfectosTexto3","EfectosTexto4","EfectosTexto5","EfectosTexto6","EfectosTexto7","Boton1"]
 		else
@@ -880,28 +899,7 @@ A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])
 A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
 A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
 A_TrayMenu.Disable(LenguajeList.BarraMenu["BuscarActualizacion"])
-
-if !DirExist(A_ScriptDir "\Sonidos")
-	DirCreate A_ScriptDir "\Sonidos"  
 	
-try 
-{
-	if (RegRead("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "EnableBalloonTips") != "0")
-		RegWrite "0", "REG_DWORD", "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "EnableBalloonTips"
-}
-catch
-	RegWrite "0", "REG_DWORD", "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "EnableBalloonTips"
-
-global WinAutoRunVerify := true
-
-OnExit ExitFunc
-
-ExitFunc(ExitReason, ExitCode)
-{
-	if ProcessExist("PingHostName.exe")
-		ProcessClose "PingHostName.exe"
-}
-
 MenuHandler(ItemName, ItemPos, MyMenu) {
 	if (ItemName = LenguajeList.BarraMenu["Pausar"])
 	{
@@ -958,6 +956,7 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 			global DataPers 
 			global EditDataPers
 			global EditPageLogin 
+			global UserNameAccount
 			
 			global NotiNormal 
 			
@@ -1007,36 +1006,39 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 					
 					DataSesion := ATTRIBUTE_UUID "&" username
 					
+					UserNameAccount := StrSplit(username, "=",, 2)[2]
+					
 					IniWrite DataSesion, "options.ini", "settings", "DataSesion"
 					
 					if NotiNormal
-					{
-						TrayTip LenguajeList.Mensajes["TrayTip1"] " " username,, "Mute"
-					}
+						Notify.Show(UserNameAccount, LenguajeList.Mensajes["TrayTip1"], 'Icons.dll|Icon5',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=2b5f00 Style=EDGE')
 						
 					A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])
 					A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
 				}
 				else if NotiNormal
 				{
-					if InStr(whr.ResponseText, "Su tarjeta no tiene saldo disponible")
+					if NotiNormal
 					{
-						TrayTip LenguajeList.Mensajes["TrayTip2"] " " usernametomsg,, "Mute"
-					}
-					else if InStr(whr.ResponseText, "Usted ha realizado muchos intentos")
-					{
-						TrayTip LenguajeList.Mensajes["TrayTip15"],, "Mute"
-					}
-					else
-					{
-						TrayTip LenguajeList.Mensajes["TrayTip3"] " " usernametomsg,, "Mute"
+						if InStr(whr.ResponseText, "Su tarjeta no tiene saldo disponible")
+						{
+							Notify.Show(LenguajeList.Mensajes["Msgbox5"], usernametomsg "`n" LenguajeList.Mensajes["TrayTip2"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+						}
+						else if InStr(whr.ResponseText, "Usted ha realizado muchos intentos")
+						{
+							Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Mensajes["TrayTip15"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+						}
+						else
+						{
+							Notify.Show(LenguajeList.Mensajes["Msgbox6"], LenguajeList.Mensajes["TrayTip3"], 'Icons.dll|Icon2',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=b10000 Style=EDGE')
+						}
 					}
 				}
 			}
 			catch
 			{
 				if NotiNormal
-					TrayTip LenguajeList.Mensajes["TrayTip4"],, "Mute"
+					Notify.Show(LenguajeList.Mensajes["Msgbox6"], LenguajeList.Mensajes["TrayTip4"], 'Icons.dll|Icon2',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=b10000 Style=EDGE')
 			}
 		}
 	}
@@ -1048,6 +1050,7 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 			global VerificarPingCada
 			global VerificarConx
 			global DataSesion
+			global UserNameAccount
 			
 			if !WebOffAccount
 			{
@@ -1101,15 +1104,13 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 								whr.Open("POST", "https://secure.etecsa.net:8443/LogoutServlet")
 								whr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
 								whr.Send(DataSesion)
-								
-								UserNameDataSesion := StrSplit(DataSesion,"&")
-								
+									
 								global NotiNormal 
 								
 								if InStr(whr.ResponseText, "SUCCESS")
 								{
 									if NotiNormal
-										TrayTip LenguajeList.Mensajes["TrayTip5"] " " UserNameDataSesion[UserNameDataSesion.Length] ,, "Mute"
+										Notify.Show(LenguajeList.Mensajes["Msgbox7"], UserNameAccount "`n" LenguajeList.Mensajes["TrayTip5"], 'Icons.dll|Icon4',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=3399ff Style=EDGE')
 										
 									DataSesion := ""
 									IniWrite DataSesion, "options.ini", "settings", "DataSesion"
@@ -1130,18 +1131,20 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])	
 			
 									A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
+									
+									UserNameAccount := ""
 								}
 								else
 								{
 									if NotiNormal
-										TrayTip LenguajeList.Mensajes["TrayTip6"] " " UserNameDataSesion[UserNameDataSesion.Length],, "Mute"
+										Notify.Show(LenguajeList.Mensajes["Msgbox6"], UserNameAccount "`n" LenguajeList.Mensajes["TrayTip6"], 'Icons.dll|Icon2',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=b10000 Style=EDGE')
 								}
 							}
 							catch
 							{
 								if NotiNormal
 								{
-									TrayTip LenguajeList.Mensajes["TrayTip7"],, "Mute"
+									Notify.Show(LenguajeList.Mensajes["Msgbox6"], LenguajeList.Mensajes["TrayTip7"], 'Icons.dll|Icon2',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=b10000 Style=EDGE')
 								}
 							}
 						}
@@ -1398,10 +1401,146 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 	}
 }
 
+
 if ActIni
 {
 	global actininorepeat := 1
 	MenuHandler(LenguajeList.BarraMenu["BuscarActualizacion"], 8, A_TrayMenu)
+}
+
+OnMessage( 0x200, WM_MOUSEMOVE ) 
+
+WM_MOUSEMOVE( wparam, lparam, msg, hwnd )
+{
+	if wparam = 1 ; LButton
+	{
+		global TitteGUI
+		try
+		{
+			if (isset(TitteGUI) and WinExist(TitteGUI))
+				PostMessage 0xA1, 2,,, TitteGUI ; WM_NCLBUTTONDOWN
+		}
+	}
+		
+}
+
+OnMessage(0x404, AHK_NOTIFYICON)
+
+AHK_NOTIFYICON(wParam, lParam, *) 
+{
+	if (lParam = 0x203) { 
+		MenuHandler(LenguajeList.BarraMenu["Configuracion"], 7, A_TrayMenu)
+    }
+	else if (lParam = 0x200) {
+		if (A_IconNumber != 1 and A_IconNumber != 2 and A_IconNumber != 3)
+		{
+			CoordMode "Mouse", "Screen"
+			MouseGetPos &OutputVarX, &OutputVarY
+			
+			global IniFileReadTime
+
+			ToolTip1 := 0
+			ToolTip2 := 0
+			
+			if !IniFileReadTime
+			{
+				global UserNameAccount
+				global TimeAccount
+				global StartTime
+				
+				if (StartTime != 0)
+					ToolTip1 := 1
+			}
+			
+			global Temporizador
+			global TemporizadorNotiTooltip
+			if Temporizador and TemporizadorNotiTooltip
+			{	
+				global SecondsTemp
+				global StartTimeTemp
+				
+				if isset(SecondsTemp)
+					ToolTip2 := 1 
+			}
+			
+			cbSize := A_PtrSize*3 + 16
+			NII := Buffer(cbSize, 0)
+
+			NumPut( "uint", cbSize, NII,  0 )
+			NumPut( "ptr", A_ScriptHwnd, NII,  A_PtrSize)
+			NumPut( "uint", 1028, NII, A_PtrSize*2 )
+
+			Rect := Buffer(16)
+
+			If !DllCall( "shell32\Shell_NotifyIconGetRect", "Ptr",NII, "Ptr",Rect )
+			{
+				Left   := NumGet(Rect, 0, "Int")
+				Top    := NumGet(Rect, 4, "Int")
+				Right  := NumGet(Rect, 8, "Int")
+				Bottom := NumGet(Rect, 12,"Int")
+			}
+
+			While(OutputVarX <= Right and OutputVarX >= Left and OutputVarY <= Bottom and OutputVarY >= Top)
+			{
+				if ToolTip1
+				{
+					ElapsedTime := (A_TickCount - StartTime)//1000
+					StartTime := A_TickCount
+					
+					if !IsInteger(TimeAccount)
+					{
+						TimeAccount := StrSplit(TimeAccount, ":")
+						TimeAccount := TimeAccount[1] * 3600 + TimeAccount[2] * 60 + TimeAccount[3]
+					}
+					
+					TimeAccount := FormatSeconds(TimeAccount - ElapsedTime)
+					
+					if InStr(A_IconTip, LenguajeList.Mensajes["IconTip5"])
+					{
+						A_IconTipnew := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount  "`n" LenguajeList.Mensajes["IconTip3"] " " TimeAccount
+					}
+					else
+						A_IconTipnew := LenguajeList.Mensajes["IconTip7"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " TimeAccount
+					
+					if (A_IconTip != A_IconTipnew)
+						A_IconTip := A_IconTipnew
+				}
+				
+				if ToolTip2
+				{
+					TimeRestTemp := SecondsTemp - (A_TickCount - StartTimeTemp)//1000
+					if (TimeRestTemp < 0)
+						TimeRestTemp := 0
+					if !InStr(A_IconTip, "Temporizador")
+						global AIconTipold := A_IconTip
+						
+					A_IconTip := AIconTipold "`n" LenguajeList.Mensajes["IconTip4"] " " FormatSeconds(TimeRestTemp)
+				}
+				
+				MouseGetPos &OutputVarX, &OutputVarY
+				sleep(1)
+			}
+		}
+	}
+}
+	
+if TimeRed
+{
+	global sockserver
+	if !sockserver
+	{
+		try
+		{
+			sockserver := Socket()
+			sockserver.Bind(["0.0.0.0", ServerOnPort])
+			sockserver.MemberShip(1,"224.13.133.233")
+			
+			msgtosend := "RequestData"
+			respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
+			respsize := StrPut(msgtosend, respbuf, Encoding)
+			sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
+		}
+	}
 }
 
 Settings(*)
@@ -1460,7 +1599,6 @@ Settings(*)
 
 	global TitteGUI
 	
-	global Temporizador
 	global TemporizadorH
 	global TemporizadorM
 	global TemporizadorS
@@ -1553,7 +1691,12 @@ Settings(*)
 	
 	global LenguajeText
 	
+
+	global ServerOnPort
+	global TimeRed
 	
+	;global TimeRedAdapters
+
 	
 	MyGui := Gui()
 	
@@ -1669,7 +1812,7 @@ Settings(*)
 	
 
 	;////////////////////////  GroupBox [Ping]
-	MyGui.Add("GroupBox", "xs w250 h210 Section Center", LenguajeList.General["PingTexto1"])
+	MyGui.Add("GroupBox", "xs w250 h220 Section Center", LenguajeList.General["PingTexto1"])
 	
 	;////// [Ping a Internet]
 	MyCheckWebConectado := MyGui.Add("Checkbox","xs+15 yp+20 Section vMyCheckConectado", " ")
@@ -1777,7 +1920,7 @@ Settings(*)
 	
 	
 	;////// [Verificar ping]
-	MyGui.Add("Text","xs y+15", LenguajeList.General["BasicasTexto6"])
+	MyGui.Add("Text","xs y+20", LenguajeList.General["BasicasTexto6"])
 	
 	MyEditConxPing := MyGui.Add("Edit", "x+5 yp-3 w35 h20")
 	MyEditConxPing.SetFont("cBlack")
@@ -1863,11 +2006,13 @@ Settings(*)
 	
 	;////////////////////////  GroupBox [Notificaciones]
 	
-	MyGui.Add("GroupBox", "xs w260 h210 Section Center", LenguajeList.General["NotificacionesTexto1"])
+	MyGui.Add("GroupBox", "xs w260 h220 Section Center", LenguajeList.General["NotificacionesTexto1"])
 	
-	
-	
+	if !DirExist(A_ScriptDir "\Sonidos")
+		DirCreate A_ScriptDir "\Sonidos"  
+		
 	MySound := ["none"]
+	
 	SoundFilesPath := A_ScriptDir "\Sonidos"
 	
 	if DirExist(SoundFilesPath)
@@ -1983,7 +2128,7 @@ Settings(*)
 	
 	
 	;////// [Notificaciones básicas y de información.]
-	MyCheckNotiNormal := MyGui.Add("Checkbox","xs+15 yp+32 vNotiNormal", " ")
+	MyCheckNotiNormal := MyGui.Add("Checkbox","xs+15 y+20 vNotiNormal", " ")
 	MyCheckNotiNormal.value := NotiNormal
 	MyTextNotiNormal := MyGui.Add("Text","yp x+-1", LenguajeList.General["NotificacionesTexto9"])
 	MyTextNotiNormal.OnEvent("Click", GMyTextNotiNormal)
@@ -2108,7 +2253,7 @@ Settings(*)
 	MyTab.UseTab(2)
 	
 	;////////////////////////  GroupBox [Paginas Web]
-	MyGroupBoxPaginasWeb := MyGui.Add("GroupBox", "w250 h280 Section Center", LenguajeList.Opciones["PaginasWebTexto1"])
+	MyGroupBoxPaginasWeb := MyGui.Add("GroupBox", "w250 h270 Section Center", LenguajeList.Opciones["PaginasWebTexto1"])
 	MyGroupBoxPaginasWeb.GetPos(&XMyGroupBoxPaginasWeb, &YMyGroupBoxPaginasWeb, &WMyGroupBoxPaginasWeb, &HMyGroupBoxPaginasWeb)
 
 	;////// [Abrir WEB si hay Internet]
@@ -2259,7 +2404,7 @@ Settings(*)
 	
 	
 	;////// [Abrir webs siempre]
-	MyCheckWebOption := MyGui.Add("Checkbox","xs y+20 vMyCheckWebOption", " ")
+	MyCheckWebOption := MyGui.Add("Checkbox","xs y+15 vMyCheckWebOption", " ")
 	MyCheckWebOption.value := WebOption
 	
 	MyCheckWebOptionText := MyGui.Add("Text","x+-0.5 yp-5", LenguajeList.Opciones["PaginasWebTexto6"] "`n" LenguajeList.Opciones["PaginasWebTexto61"])
@@ -2303,7 +2448,7 @@ Settings(*)
 
 
 	;////////////////////////  GroupBox [Avanzado]
-	MyGui.Add("GroupBox","y" YMyGroupBoxPaginasWeb " x" (XMyGroupBoxPaginasWeb+WMyGroupBoxPaginasWeb+MyGui.MarginX) " w260 h280 Section Center", LenguajeList.Opciones["AvanzadoTexto1"])
+	MyGui.Add("GroupBox","y" YMyGroupBoxPaginasWeb " x" (XMyGroupBoxPaginasWeb+WMyGroupBoxPaginasWeb+MyGui.MarginX) " w260 h270 Section Center", LenguajeList.Opciones["AvanzadoTexto1"])
 	
 	;////// [Web para poner la cuenta]
 	MyGui.Add("Text","xs+15 yp+25", LenguajeList.Opciones["AvanzadoTexto2"])
@@ -2314,7 +2459,7 @@ Settings(*)
 
 	
 	;////// [Personalizar datos requeridos]
-	MyCheckDataPers := MyGui.Add("Checkbox","xp yp+40 vMyDataPers", " ")
+	MyCheckDataPers := MyGui.Add("Checkbox","xp yp+30 vMyDataPers", " ")
 	MyCheckDataPers.OnEvent("Click", GDataPers)
 	MyCheckDataPers.Value := DataPers
 	
@@ -2359,7 +2504,7 @@ Settings(*)
 
 
 	;////// [Web para quitar la cuenta]
-	MyCheckWebOffAccount := MyGui.Add("Checkbox","xp yp+40 vMyWebOffAccount", " ")
+	MyCheckWebOffAccount := MyGui.Add("Checkbox","xp yp+30 vMyWebOffAccount", " ")
 	MyCheckWebOffAccount.value := WebOffAccount
 	MyCheckWebOffAccount.OnEvent("Click", GWebOffAccount)
 	
@@ -2395,7 +2540,7 @@ Settings(*)
 	
 	
 	;////// [Utilizar "InternetAccount.ini"]
-	MyCheckIniFileReadTime := MyGui.Add("Checkbox","xp yp+40 vMyIniFileReadTime", " ")
+	MyCheckIniFileReadTime := MyGui.Add("Checkbox","xp yp+30 vMyIniFileReadTime", " ")
 	MyCheckIniFileReadTime.value := IniFileReadTime
 	MyCheckIniFileReadTime.OnEvent("Click", GIniFileReadTime)
 	
@@ -2427,20 +2572,325 @@ Settings(*)
 	}
 	;//////
 	
+	;////// GroupBox [Red]
+	MyGroupBoxRed := MyGui.Add("GroupBox","xs w260 h110 Section Center", LenguajeList.Opciones["RedTexto1"])
+	
+	MyGui.Add("Text","xs+208 yp+15", LenguajeList.Opciones["RedTexto2"])
+	
+	MyCheckTimeRed := MyGui.Add("Checkbox","xs+15 y+8 Section vTimeRed", " ")
+	MyCheckTimeRed.value := TimeRed
+	MyCheckTimeRed.OnEvent("Click", GTimeRed)
+	
+	MyTextTimeRed := MyGui.Add("Text","x+-0.5",  LenguajeList.Opciones["RedTexto3"])
+	MyTextTimeRed.OnEvent("Click", GTextTimeRed)
+	
+	MyEditPuerto := MyGui.Add("Edit", "xs+191 yp-3 w40 h20 Number Limit5 vServerOnPort")
+	MyEditPuerto.value := ServerOnPort
+	
+	GTimeRed
+	
+	GTimeRed(*)
+	{
+		if MyCheckTimeRed.value
+			MyEditPuerto.Enabled := 1
+		else
+			MyEditPuerto.Enabled := 0
+	}
+	
+	GTextTimeRed(*)
+	{
+		if MyCheckTimeRed.value
+			MyCheckTimeRed.value := 0
+		else
+			MyCheckTimeRed.value := 1
+		
+		GTimeRed
+	}
+	
+	/*
+	MyTextTimeRed.OnEvent("Click", GTextTimeRed)
+
+	MyGui.Add("Text","xs", "Adaptador de Red:")
+	MyGui.Add("Text","xs+198 yp", LenguajeList.Opciones["RedTexto2"])
+	
+	global ADAPTER_INFO
+	global TimeRedAdaptersIndx
+	global ADAPTER_Only
+	global IPAddOrRemove
+	
+	GetAdaptInfo
+	
+	MyDropDownListTimeRedAdapters := MyGui.Add("DropDownList", "xs w190 vTimeRedAdapters R10", ADAPTER_Only)
+	MyDropDownListTimeRedAdapters.OnEvent("Change", GListTimeRedAdapters)
+	MyDropDownListTimeRedAdapters.Value := TimeRedAdaptersIndx
+	
+	MyEditPuerto := MyGui.Add("Edit", "yp+1 x+5 w40 h20 Number Limit5 vServerOnPort")
+	MyEditPuerto.value := ServerOnPort
+	
+	MyEditIPAddOrRemoveColumn := MyGui.Add("Edit","xs w30 h45 ReadOnly Number r3 -VScroll")
+	MyEditIPAddOrRemoveColumn.Value := "#1`n#2`n#3"
+	
+	global MyEditIPAddOrRemove := MyGui.Add("Edit","yp+1 x+2 vIPAddOrRemove w203 h45 Section")
+	
+	if MyDropDownListTimeRedAdapters.Value != 0
+	{
+		if (IPAddOrRemove = "")
+			MyEditIPAddOrRemove.value := ADAPTER_INFO.%MyDropDownListTimeRedAdapters.Text%["IPList"]
+		else
+		{
+			FoundAdapter := InStr(IPAddOrRemove, MyDropDownListTimeRedAdapters.Text)
+			if FoundAdapter
+			{
+				LenghtFoundAdapter := StrLen(MyDropDownListTimeRedAdapters.Text)
+				FoundEndAdapter := FoundAdapter+LenghtFoundAdapter+1
+				FoundIps := InStr(IPAddOrRemove, ";",,FoundEndAdapter)
+				GetIpsText := SubStr(IPAddOrRemove, FoundEndAdapter, FoundIps-FoundEndAdapter)
+			
+			sads := StrReplace(GetIpsText, ",", "`n")
+
+				MyEditIPAddOrRemove.value := sads
+			}
+			else
+				MyEditIPAddOrRemove.value := ADAPTER_INFO.%MyDropDownListTimeRedAdapters.Text%["IPList"]
+		}	
+	}
+		
+	MyEditIPAddOrRemove.OnEvent("Focus", GMyEditIPAddOrRemove)
+
+	
+	GMyEditIPAddOrRemove(gui, *)
+	{
+		while(ControlGetFocus() = gui.HWND)
+		{
+			FirstLine := SendMessage(0x00CE, 0, 0, gui.HWND)+1
+			if !isset(FirstLineOld) or FirstLine != FirstLineOld
+			{
+				FirstLineOld := FirstLine
+				MyEditIPAddOrRemoveColumn.Value := "#" FirstLine "`n#" FirstLine+1 "`n#" FirstLine+2
+			}
+		}
+	}
+	
+	;msgbox MyDropDownListTimeRedAdapters.Text
+	
+	GTimeRed
+	
+	GListTimeRedAdapters(*)
+	{
+		global ADAPTER_INFO
+		MyEditIPAddOrRemove.value := ADAPTER_INFO.%MyDropDownListTimeRedAdapters.Text%["IPList"]
+	}
+	
+	GTextTimeRed(*)
+	{
+		if MyCheckTimeRed.value
+			MyCheckTimeRed.value := 0
+		else
+			MyCheckTimeRed.value := 1
+		
+		GTimeRed
+	}
+	
+	GTimeRed(*)
+	{
+		if MyCheckTimeRed.value
+		{
+			MyDropDownListTimeRedAdapters.Enabled := 1
+			MyEditPuerto.Enabled := 1
+			MyEditIPAddOrRemove.Enabled := 1
+		}
+		else
+		{
+			MyDropDownListTimeRedAdapters.Enabled := 0
+			MyEditPuerto.Enabled := 0
+			MyEditIPAddOrRemove.Enabled := 0
+		}
+	}
+	
+	GetAdaptInfo()
+	{
+		Addresses := SysGetIPAddresses()
+		global ADAPTER_INFO := Map()
+		global TimeRedAdaptersIndx := 0
+		
+		if (Addresses.Length > 0)
+		{
+			AddressesSTR := ""
+			for address in Addresses
+				AddressesSTR .= address " "
+			
+			static ERROR_SUCCESS                  := 0
+			static ERROR_BUFFER_OVERFLOW          := 111
+			static MAX_ADAPTER_DESCRIPTION_LENGTH := 128
+
+			if (DllCall("iphlpapi\GetAdaptersInfo", "Ptr", 0, "UInt*", &Size := 0, "UInt") = ERROR_BUFFER_OVERFLOW)
+			{
+				Buf := Buffer(Size)
+				if (DllCall("iphlpapi\GetAdaptersInfo", "Ptr", Buf, "UInt*", Size, "UInt") = ERROR_SUCCESS)
+				{
+					
+					global ADAPTER_Only := []
+					Addr := Buf.Ptr
+					Index := 0
+					while (Addr)
+					{
+						LengtAddrNow := Addr
+						LengtAddrAfter := NumGet(Addr, "Ptr")
+
+						Description := StrGet(Addr + 272, MAX_ADAPTER_DESCRIPTION_LENGTH + 4, "CP0")
+						IpAddressList := StrGet(Addr + 440 + A_PtrSize, "CP0") 
+						IpMaskList := StrGet(Addr + 440 + A_PtrSize + 16, "CP0")
+						
+						AddressesSTRLengthOld := StrLen(AddressesSTR)
+						AddressesSTR := StrReplace(AddressesSTR, IpAddressList " ",,,, 1)
+						AddressesSTRLengthNew := StrLen(AddressesSTR)
+						
+						AddressesEdit := ""
+						if (AddressesSTRLengthOld != AddressesSTRLengthNew)
+						{
+							Index += 1
+							ADAPTER_INFO.%Description% := Map()
+							MapMask := ConvertMask(IpMaskList)
+							
+							AddressesEdit := IpAddressList  MapMask["Prefix"]
+							
+							IPArray := StrSplit(IpAddressList, ".")
+							MASKIPArray := StrSplit(IpMaskList, ".")
+							
+							StartIP := [IPArray[1]&MASKIPArray[1], IPArray[2]&MASKIPArray[2], IPArray[3]&MASKIPArray[3], IPArray[4]&MASKIPArray[4]]
+							LastIP := [StartIP[1]|(255-MASKIPArray[1]), StartIP[2]|(255-MASKIPArray[2]), StartIP[3]|(255-MASKIPArray[3]), StartIP[4]|(255-MASKIPArray[4])]
+							
+							ADAPTER_INFO.%Description%["IPCount"] := 1
+							ADAPTER_INFO.%Description%["IPList"] := AddressesEdit
+							ADAPTER_INFO.%Description%["IP1"] := IpAddressList
+							ADAPTER_INFO.%Description%["IP1Prefix"] := MapMask["Prefix"]
+							ADAPTER_INFO.%Description%["IP1Start"] := StartIP
+							ADAPTER_INFO.%Description%["IP1Last"] := LastIP
+							
+							if (TimeRedAdapters = Description)
+								TimeRedAdaptersIndx := Index
+							ADAPTER_Only.Push(Description)
+						
+							if AddressesSTRLengthNew = 0
+								break
+			
+							Offset := 712
+							while (Offset <= (LengtAddrAfter - LengtAddrNow))
+							{
+								AddressGet := StrGet(Addr + Offset, "CP0")
+								AddressMaskGet := StrGet(Addr + Offset + 16, "CP0")
+								
+								AddressesSTRLengthOld := AddressesSTRLengthNew
+								AddressesSTR := StrReplace(AddressesSTR, AddressGet " ",,,, 1)
+								AddressesSTRLengthNew := StrLen(AddressesSTR)
+								
+								if (AddressesSTRLengthOld != AddressesSTRLengthNew)
+								{
+									MapMask := ConvertMask(AddressMaskGet)
+									AddressesEdit .= "`n" AddressGet MapMask["Prefix"]
+									
+									IPArray := StrSplit(AddressGet, ".")
+									MASKIPArray := StrSplit(AddressMaskGet, ".")
+									
+									StartIP := [IPArray[1]&MASKIPArray[1], IPArray[2]&MASKIPArray[2], IPArray[3]&MASKIPArray[3], IPArray[4]&MASKIPArray[4]]
+									LastIP := [StartIP[1]|(255-MASKIPArray[1]), StartIP[2]|(255-MASKIPArray[2]), StartIP[3]|(255-MASKIPArray[3]), StartIP[4]|(255-MASKIPArray[4])]
+									
+									ADAPTER_INFO.%Description%["IPCount"]++
+									ADAPTER_INFO.%Description%["IPList"] := AddressesEdit
+									ADAPTER_INFO.%Description%["IP" A_INDEX+1] := AddressGet
+									ADAPTER_INFO.%Description%["IP" A_INDEX+1 "Prefix"] := MapMask["Prefix"]
+									ADAPTER_INFO.%Description%["IP" A_INDEX+1 "Start"] := StartIP
+									ADAPTER_INFO.%Description%["IP" A_INDEX+1 "Last"] := LastIP
+								}
+								else
+									break
+								
+								if AddressesSTRLengthNew = 0
+									break
+
+								if !NumGet(Addr - A_PtrSize, "INT")
+									break
+									
+								Offset += 48
+							}
+							
+							if AddressesSTRLengthNew = 0
+								break
+
+						}
+
+						Addr := LengtAddrAfter
+					}
+				}
+			}
+
+		}
+	}
+	
+	*/
+	
+	/*
+	MyRadioGroupServerOn := MyGui.Add("Radio", "xp+40 yp+30", LenguajeList.Opciones["AvanzadoTexto6"])
+	MyRadioGroupServerOn.value := 1
+	MyRadioGroupServerOn.OnEvent("Click", GServerClient)
+	
+	MyRadioGroupClienteOn := MyGui.Add("Radio", "x+15 yp", LenguajeList.Opciones["AvanzadoTexto7"])
+	MyRadioGroupClienteOn.OnEvent("Click", GServerClient)
 	
 	
+	MyCheckServerOn := MyGui.Add("Checkbox","xs+15 yp+25 Section vServerClientOn", " ")
+	MyCheckServerOn.value := ServerOn
+	MyCheckServerOn.OnEvent("Click", GServerOn)
+	
+	
+	MyGui.Add("Text","x+-1", LenguajeList.Opciones["AvanzadoTexto8"])
+	MyEditServerIP := MyGui.Add("Edit", "yp-3 x+5 w90 h20 Limit15 vServerClientOnIp")
+	MyEditServerIP.value := ServerOnIp
+	
+	
+	
+	GServerOn
+	
+	GServerOn(*)
+	{
+		if MyCheckServerOn.value
+		{
+			MyEditServerIP.Enabled := 1
+			MyEditPuerto.Enabled := 1
+		}
+		else
+		{
+			MyEditServerIP.Enabled := 0
+			MyEditPuerto.Enabled := 0
+		}
+	}
+	
+	GServerClient(Gui, *)
+	{
+		if (Gui.Text = LenguajeList.Opciones["AvanzadoTexto6"])
+		{
+			MyCheckServerOn.value := ServerOn
+			MyEditServerIP.value := ServerOnIp
+			MyEditPuerto.value := ServerOnPort
+		}
+		else 
+		{
+			MyCheckServerOn.value := ClienteOn
+			MyEditServerIP.value := ClienteOnIp
+			MyEditPuerto.value := ClienteOnPort
+		}
+		GServerOn
+	}
+	*/
+	
+	;//////
+
 	;////// GroupBox [Temporizador]
-	MyGroupBoxTemporizador := MyGui.Add("GroupBox", "x" XMyGroupBoxPaginasWeb " y" (YMyGroupBoxPaginasWeb+HMyGroupBoxPaginasWeb+MyGui.MarginY) " w" (510+MyGui.MarginX) " h90 Section Center", LenguajeList.Opciones["TemporizadorTexto1"])
+	MyGroupBoxTemporizador := MyGui.Add("GroupBox", "x" XMyGroupBoxPaginasWeb " y" (YMyGroupBoxPaginasWeb+HMyGroupBoxPaginasWeb+MyGui.MarginY) " w250 h110 Section Center", LenguajeList.Opciones["TemporizadorTexto1"])
 	MyGroupBoxTemporizador.GetPos(&XMyGroupBoxTemporizador, &YMyGroupBoxTemporizador, &WMyGroupBoxTemporizador, &HMyGroupBoxTemporizador)
 	
-	;////// [Quitar la cuenta al cabo de:]
-	MyCheckTemporizador := MyGui.Add("Checkbox","xs+15 yp+23 Section vTemporizador", " ")
-	MyCheckTemporizador.value := Temporizador
-	
-	MyTextTemporizador := MyGui.Add("Text","x+-0.5 yp", LenguajeList.Opciones["TemporizadorTexto2"])
-	MyTextTemporizador.OnEvent("Click", GMyCheckTemporizador1)
 
-	MyEditTemporizadorH := MyGui.Add("Edit","xs y+15 w35 h20")
+	MyEditTemporizadorH := MyGui.Add("Edit","xs+15 yp+20 w35 h20 Section")
 	MyUpDownTemporizadorH := MyGui.Add("UpDown", "vTemporizadorH Range0-23", 0)
 	
 	MyUpDownTemporizadorH.OnEvent("Change", GMyUpDownTemporizadorH)
@@ -2563,20 +3013,11 @@ Settings(*)
 	}
 
 
-	GMyCheckTemporizador1(*)
-	{
-		if MyCheckTemporizador.value
-			MyCheckTemporizador.value := 0
-		else
-			MyCheckTemporizador.value := 1
-			
-	}
-
 	;//////
 	
 	
 	;////// [Mostar cuenta atras en el Icono]
-	MyCheckTempNotiIcon := MyGui.Add("Checkbox","x+90 ys Section vTempNotiIcon", " ")
+	MyCheckTempNotiIcon := MyGui.Add("Checkbox","xs y+15  Section vTempNotiIcon", " ")
 	MyCheckTempNotiIcon.value := TemporizadorNotiIcon
 	MyTextTempNotiIcon := MyGui.Add("Text","x+-0.5 yp", LenguajeList.Opciones["TemporizadorTexto3"])
 	MyTextTempNotiIcon.OnEvent("Click", GMyCheckTempNotiIcon)
@@ -2625,7 +3066,9 @@ Settings(*)
 	
 	
 	
-	;////// 
+	;//////
+
+
 	
 	
 	;////////////////////////
@@ -2693,18 +3136,9 @@ Settings(*)
 	;////// 
 	
 	;////// [Corrección de posición del GIF verticalmente]
-	try
-	{
-		prevHW := A_DetectHiddenWindows
-		DetectHiddenWindows true
-		WinGetPos ,,, &H, "ahk_class Shell_TrayWnd"
-		DetectHiddenWindows prevHW
-	}
-	catch
-		H := 48
 	MyTextPosVGif := MyGui.Add("Text","xs+15 yp+22", LenguajeList.GIF["AjustesTexto3"])
 	MyEditPosVGif := MyGui.Add("Edit", "yp-3 x+5 w40 h20")
-	MyUpDownPosVGif := MyGui.Add("UpDown", "vPosVGif Range0-" H+12, 0)
+	MyUpDownPosVGif := MyGui.Add("UpDown", "vPosVGif Range0-100", 0)
 	MyUpDownPosVGif.value := PosVGif%NumberToLoad%
 	;////// 
 	
@@ -2776,12 +3210,12 @@ Settings(*)
 	;////// 
 	
 	;//////////////////////// GroupBox [Efectos]
-	MyGui.Add("GroupBox", "xs w250 h185 Section Center", LenguajeList.GIF["EfectosTexto1"])
+	MyGui.Add("GroupBox", "xs w250 h197 Section Center", LenguajeList.GIF["EfectosTexto1"])
 	
 	Efectos := StrSplit(LenguajeList.GIF["EfectosTexto2"], ",")
 	
 	;////// [Entrada]
-	MyGui.Add("Text","xs+15 yp+25", LenguajeList.GIF["EfectosTexto3"])
+	MyGui.Add("Text","xs+15 yp+30", LenguajeList.GIF["EfectosTexto3"])
 	
 	MyDropDownListEfectoEntradaGif := MyGui.Add("DropDownList", "yp-3 x+5 w190 vEfectoEntradaGif R10", Efectos)
 	MyDropDownListEfectoEntradaGif.Value :=  EfectoEntradaGif%NumberToLoad%
@@ -2809,7 +3243,7 @@ Settings(*)
 	
 
 	;////// [Salida]
-	MyGui.Add("Text","xs+15 y+25 ", LenguajeList.GIF["EfectosTexto6"])
+	MyGui.Add("Text","xs+15 y+30 ", LenguajeList.GIF["EfectosTexto6"])
 	
 	MyDropDownListEfectoSalidaGif := MyGui.Add("DropDownList", "yp-3 x+5 w190 vEfectoSalidaGif R10", Efectos)
 	MyDropDownListEfectoSalidaGif.Value := EfectoSalidaGif%NumberToLoad%
@@ -2843,7 +3277,7 @@ Settings(*)
 	MyTextTiempoEntradaGif := MyGui.Add("Text","yp+3 x+5", "s.")
 	;////// 
 
-	MyLV := MyGui.Add("ListView", "y" (YMyGroupBoxAjustes+5) " x" (XMyGroupBoxAjustes+WMyGroupBoxAjustes+MyGui.MarginX ) " w260 h290 Icon")
+	MyLV := MyGui.Add("ListView", "y" (YMyGroupBoxAjustes+5) " x" (XMyGroupBoxAjustes+WMyGroupBoxAjustes+MyGui.MarginX ) " w260 h302 Icon")
 	
 	MyLV.Opt("-Multi")
 	
@@ -2959,6 +3393,7 @@ Settings(*)
 	}
 	;//////
 	
+	
 	MyTab.UseTab()
 	
 	
@@ -2974,7 +3409,6 @@ Settings(*)
 	MyButtonNo.Visible := 0
 	MyGui.Add("Button", "Default w170 yp", LenguajeList.Configuracion["Boton2"]).OnEvent("Click", Gui_BClose)
 	MyGui.Add("Button", "Default w170 yp", LenguajeList.Configuracion["Boton3"]).OnEvent("Click", Gui_BRestablecer)
-
 
 
 	GTextInfo(*)
@@ -3134,7 +3568,6 @@ Settings(*)
 				MyEditIniFileReadTime.Enabled := 0
 				MyEditIniFileReadTime.value := "ftp://usuario:contraseña@ip/archivo"
 				
-				MyCheckTemporizador.value := 0
 				MyUpDownTemporizadorH.value := 0
 				MyUpDownTemporizadorM.value := 0
 				MyUpDownTemporizadorS.value := 0
@@ -3171,6 +3604,15 @@ Settings(*)
 				MyUpDownRetrasoNacional.value := 0
 				MyUpDownRetrasoConectado.value := 0
 				
+				
+				MyCheckTimeRed.value := 0
+				MyEditPuerto.value := 27015
+				
+				;MyDropDownListTimeRedAdapters.Value := 0
+				;MyEditIPAddOrRemove.Value := ""
+				
+				GTimeRed
+
 				try
 					MyLV.Modify(1, "Select")
 
@@ -3261,10 +3703,30 @@ Settings(*)
 		global IniFileReadTime := SaveData.MyIniFileReadTime
 		global EditIniFileReadTime := SaveData.MyEditIniFileReadTime
 		
-		global Temporizador := SaveData.Temporizador
 		global TemporizadorH := SaveData.TemporizadorH
 		global TemporizadorM := SaveData.TemporizadorM
 		global TemporizadorS := SaveData.TemporizadorS
+		
+		global Temporizador
+		
+		if !Temporizador
+		{
+			if (TemporizadorH = 0 and TemporizadorM = 0 and TemporizadorS = 0)
+				A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+			else if (A_IconNumber = 1 or A_IconNumber = 2 or A_IconNumber = 3)
+				A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+			else
+				A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
+				
+			A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
+		}
+		else
+		{
+			A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+			A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
+		}
+		
+		
 		global TemporizadorNotiIcon := SaveData.TempNotiIcon
 		global TemporizadorNotiTooltip := SaveData.TempNotiTooltip
 		global TemporizadorNotiWindows := SaveData.TempNotiWindows
@@ -3273,7 +3735,285 @@ Settings(*)
 		global NotiGifNacional := SaveData.NotiGifNacional
 		global NotiGifConectado := SaveData.NotiGifConectado
 		
+		global ServerOnPort
+		global TimeRed := SaveData.TimeRed
 		
+		ServerOnPortOld := ServerOnPort
+		if (SaveData.ServerOnPort >= 1 and SaveData.ServerOnPort <= 65535)
+			ServerOnPort := SaveData.ServerOnPort 
+		
+		if TimeRed
+		{
+			global sockserver
+			global StartTime
+			if !sockserver
+			{
+				sockserver := Socket()
+				sockserver.Bind(["0.0.0.0", ServerOnPort])
+				sockserver.MemberShip(1,"224.13.133.233")
+			}
+			else if ServerOnPortOld != ServerOnPort
+			{
+				sockserver.__Delete()
+				sockserver := Socket()
+				sockserver.Bind(["0.0.0.0", ServerOnPort])
+				sockserver.MemberShip(1,"224.13.133.233")
+			}
+			
+			if (!StartTime)
+			{
+				msgtosend := "RequestData"
+				respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
+				respsize := StrPut(msgtosend, respbuf, Encoding)
+				sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
+			}
+		}
+		else
+		{
+			global sockserver
+			if sockserver
+			{
+				sockserver.__Delete()
+			}
+		}
+		
+		/*
+		global TimeRedAdapters := SaveData.TimeRedAdapters
+		
+		global IPAddOrRemove
+		
+		ProblemsListIP := ""
+		IndexAdap := 0
+		SetLineOnSave := ""
+		SetLineOnSaveValue := ""
+		
+		if MyEditIPAddOrRemove.value != ""
+		{
+			Loop Parse MyEditIPAddOrRemove.value, "`r`n"	
+			{
+				LineaError := A_LoopField
+				IndexAdap++
+				if InStr(A_LoopField, " ")
+				{
+					ProblemsListIP .= "#" IndexAdap " -> " LenguajeList.Mensajes["Msgbox14"] "`n"
+					continue
+				}
+
+				if (A_LoopField = "")
+				{
+					ProblemsListIP .= "#" IndexAdap " -> " LenguajeList.Mensajes["Msgbox14"] "`n"
+					continue
+				}
+
+				if InStr(SetLineOnSave, A_LoopField)
+				{
+					ProblemsListIP .= "#" IndexAdap ' -> "' LineaError '" - ' LenguajeList.Mensajes["Msgbox15"] "`n"
+					continue
+				}
+				
+				VerifyIp2Array := 0
+				if InStr(A_LoopField, "-")
+				{
+					if InStr(A_LoopField, "/")
+					{
+						ProblemsListIP .= "#" IndexAdap ' -> "' LineaError '" - ' LenguajeList.Mensajes["Msgbox13"] "`n"
+						continue
+					}
+						
+					VerifyIpArray := StrSplit(A_LoopField, "-", ,2)
+					
+					if !ValidIP(VerifyIpArray[1])
+					{
+						ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox9"] "`n"
+						continue
+					}
+					if !ValidIP(VerifyIpArray[2])
+					{
+						ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox9"] "`n"
+						continue
+					}
+					
+					VerifyIp1Array := StrSplit(VerifyIpArray[1], ".", ,4)
+					VerifyIp2Array := StrSplit(VerifyIpArray[2], ".", ,4)
+				}
+				else if InStr(A_LoopField, "/")
+				{
+					VerifyIpArray := StrSplit(A_LoopField, "/", ,2)
+					
+					if (VerifyIpArray[2] = "")
+					{
+						ProblemsListIP .= "#" IndexAdap " -> " LineaError " - " LenguajeList.Mensajes["Msgbox12"] "`n"
+						continue
+					}
+			
+					if !IsDigit(VerifyIpArray[2])
+					{
+						ProblemsListIP .= "#" IndexAdap " -> " LineaError " - " LenguajeList.Mensajes["Msgbox11"] "`n"
+						continue
+					}
+					
+					if (VerifyIpArray[2] > 32 or VerifyIpArray[2] < 0)
+					{
+						ProblemsListIP .= "#" IndexAdap " -> " LineaError " - " LenguajeList.Mensajes["Msgbox10"] "`n"
+						continue
+					}
+
+					if !ValidIP(VerifyIpArray[1])
+					{
+						ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox9"] "`n"
+						continue
+					}
+						
+					VerifyIp1Array := StrSplit(VerifyIpArray[1], ".", ,4)
+				}
+				else
+				{
+					if !ValidIP(A_LoopField)
+					{
+						ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox9"] "`n"
+						continue
+					}
+					
+					VerifyIp1Array := StrSplit(A_LoopField, ".", ,4)
+				}
+				
+				InRange := 0
+				
+				Loop ADAPTER_INFO.%MyDropDownListTimeRedAdapters.Text%["IPCount"]
+				{
+					
+					StartIP := ADAPTER_INFO.%MyDropDownListTimeRedAdapters.Text%["IP" A_INDEX "Start"]
+					LastIP := ADAPTER_INFO.%MyDropDownListTimeRedAdapters.Text%["IP" A_INDEX "Last"]
+					
+					Loop 4
+					{
+						If (StartIP[A_Index] = LastIP[A_Index])
+						{
+							if (StartIP[A_Index] != VerifyIp1Array[A_Index])
+							{	
+								ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox8"] "`n"
+								break
+							}
+								
+							if (VerifyIp2Array != 0)
+							{
+								if (VerifyIp1Array[A_Index] != VerifyIp2Array[A_Index])
+								{
+									ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox8"] "`n"
+									break
+								}	
+							}
+						}
+						else
+						{
+							if (A_INDEX = 4)
+							{
+								if (VerifyIp1Array[A_Index] <= StartIP[A_Index] or VerifyIp1Array[A_Index] >= LastIP[A_Index])
+								{
+									ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox8"] "`n"
+									break
+								}
+								
+								if (VerifyIp2Array != 0)
+								{
+									if (VerifyIp2Array[A_Index] <= StartIP[A_Index] or VerifyIp2Array[A_Index] >= LastIP[A_Index])
+									{
+										ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox8"] "`n"
+										break
+									}
+								}
+									
+								InRange := 1
+							}
+							else
+							{
+								if (VerifyIp1Array[A_Index] < StartIP[A_Index] or VerifyIp1Array[A_Index] > LastIP[A_Index])
+								{
+									ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox8"] "`n"
+									break
+								}
+								
+								if (VerifyIp2Array != 0)
+								{
+									if (VerifyIp2Array[A_Index] < StartIP[A_Index] or VerifyIp2Array[A_Index] > LastIP[A_Index])
+									{	
+										ProblemsListIP .= "#" IndexAdap ' -> Ip: "' LineaError '" - ' LenguajeList.Mensajes["Msgbox8"] "`n"
+										break
+									}
+								}
+							}	
+						}
+					}
+					
+					if InRange
+						break
+				}
+				
+				if InRange
+				{
+					SetLineOnSave .= A_LoopField ","
+					SetLineOnSaveValue .= A_LoopField "`n"
+				}
+			}
+			
+			if ProblemsListIP != ""
+			{
+				ProblemsListIP := RTrim(ProblemsListIP, "`n")
+				Notify.Show(LenguajeList.Mensajes["Msgbox6"], ProblemsListIP, 'Icons.dll|Icon2',,, 'dur=6 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=b10000 Style=EDGE')
+			}
+			
+			
+			FoundThisInText := InStr(IPAddOrRemove, MyDropDownListTimeRedAdapters.Text)
+			if FoundThisInText
+				IPAddOrRemove := RegExReplace(IPAddOrRemove, ".*;",,,,FoundThisInText)
+
+			IPAddOrRemove .= MyDropDownListTimeRedAdapters.Text "," RTRIM(SetLineOnSave, ",")  ";"
+			
+			MyEditIPAddOrRemove.Value := RTRIM(SetLineOnSaveValue, "`n") 
+			
+			MyEditIPAddOrRemoveColumn.Value := "#1`n#2`n#3"
+		}
+	*/
+
+	/*
+		if (ValidIP(SaveData.ServerClientOnIp) and SaveData.ServerOnPort >= 1 and SaveData.ServerClientOnPort <= 65535)
+		{
+			if MyRadioGroupServerOn.value
+			{
+				global ServerOn := SaveData.ServerClientOn
+				global ServerOnIp := SaveData.ServerClientOnIp
+				global ServerOnPort := SaveData.ServerClientOnPort 
+				
+				global ServerOnVerify
+				global sockserver
+				
+				if ServerOn
+				{
+					if !ServerOnVerify
+					{
+						sockserver := winsock("server",cb,"IPV4")
+						sockserver.Bind(ServerOnIp,ServerOnPort) ; "0.0.0.0",27015
+						sockserver.Listen()
+						ServerOnVerify := 1
+					}
+				}
+				else
+				{
+					if ServerOnVerify
+					{
+						sockserver.Close()
+						ServerOnVerify := 0
+					}
+				}
+			}
+			else
+			{
+				global ClienteOn := SaveData.ServerClientOn
+				global ClienteOnIp := SaveData.ServerClientOnIp
+				global ClienteOnPort := SaveData.ServerClientOnPort 
+			}
+		}
+*/
 		global NotiNormal := SaveData.NotiNormal
 		
 		global ConectadoGif := SaveData.ConectadoGif
@@ -3408,34 +4148,6 @@ Settings(*)
 		}
 		
 		
-		if Temporizador
-		{
-			if (A_IconNumber != 1 and A_IconNumber != 2 and A_IconNumber != 3)
-			{
-				A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-				A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
-			}
-			else
-			{
-				A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-				A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-			}
-		}
-		else
-		{
-			if (A_IconNumber != 1 and A_IconNumber != 2 and A_IconNumber != 3)
-			{
-				A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
-				A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-			}
-			else
-			{
-				A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-				A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-			}
-		}
-		
-
 		if NotiGifConectado
 			MyRadioGroupConectadoGif.Enabled := 1
 		else
@@ -3591,8 +4303,12 @@ Settings(*)
 		options .= "RetrasoConectado=" SaveData.RetrasoConectado "`n"
 		options .= "RetrasoNacional=" SaveData.RetrasoNacional "`n"
 		options .= "RetrasoDesconectado=" SaveData.RetrasoDesconectado "`n"
-		options .= "RetrasoError=" SaveData.RetrasoError
+		options .= "RetrasoError=" SaveData.RetrasoError "`n"
 		
+		options .= "ServerOnPort=" ServerOnPort "`n"
+		options .= "TimeRed=" SaveData.TimeRed
+		;options .= "TimeRedAdapters=" SaveData.TimeRedAdapters "`n"
+		;options .= "IPAddOrRemove=" IPAddOrRemove
 		
 		if FileExist("options.ini")
 			FileDelete "options.ini"	
@@ -3605,7 +4321,7 @@ Settings(*)
 			Settings
 		}
 		
-		MsgBox(LenguajeList.Mensajes["Msgbox2"], TitteGUI, "Ok")
+		Notify.Show(LenguajeList.Mensajes["Msgbox4"], LenguajeList.Mensajes["Msgbox2"], 'Icons.dll|Icon5',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=2b5f00 Style=EDGE')
 		
 		if restlanguaje
 		{
@@ -3616,10 +4332,7 @@ Settings(*)
 			TrayMenuCreate
 			Settings
 		}
-		
-		
 	}
-	
 	
 	Gui_BGuardar(Gui, *)
 	{
@@ -3629,7 +4342,39 @@ Settings(*)
 	}
 	
 }
-	
+
+/*
+A_HotkeyInterval := 0
+
+global TitteGUI
+global MyEditIPAddOrRemove 
+
+#HotIf IsSet(TitteGUI) and WinExist(TitteGUI) and TitteGUI = LenguajeList.Configuracion["Titulo"] and ControlGetFocus(TitteGUI) != MyEditIPAddOrRemove.HWND and GetOutputVarControl(MyEditIPAddOrRemove.HWND, TitteGUI)
+WheelDown::
+WheelUp::
+{
+	ControlFocus MyEditIPAddOrRemove.HWND, TitteGUI 
+	Send "{" A_ThisHotkey "}"
+}
+#HotIf
+
+
+GetOutputVarControl(Cntrl, Wind)
+{
+	MouseGetPos ,,&OutputVarWin, &OutputVarControl
+	WindID := WinGetID(Wind)
+	if OutputVarWin = WindID
+	{
+		try
+			if Cntrl = ControlGetHwnd(OutputVarControl, "ahk_id " WindID)
+				return 1
+	}
+
+	return 0
+}
+*/
+
+
 Gui_BClose(*)
 {
 	global TitteGUI
@@ -3640,7 +4385,6 @@ Gui_Escape(thisgui)
 {
 	WinClose thisgui
 }
-
 
 SetDarkMode(MyGui, *)
 {
@@ -3742,119 +4486,7 @@ SetDarkMode(MyGui, *)
 	global WindowProcOld := DllCall("user32\" SetWindowLong, "Ptr", MyGui.Hwnd, "Int", GWL_WNDPROC, "Ptr", WindowProcNew, "Ptr")
 }
 	
-OnMessage(0x404, AHK_NOTIFYICON)
-OnMessage( 0x200, WM_MOUSEMOVE ) 
 
-WM_MOUSEMOVE( wparam, lparam, msg, hwnd )
-{
-	if wparam = 1 ; LButton
-	{
-		global TitteGUI
-		try
-		{
-			if (isset(TitteGUI) and WinExist(TitteGUI))
-				PostMessage 0xA1, 2,,, TitteGUI ; WM_NCLBUTTONDOWN
-		}
-	}
-		
-}
-
-AHK_NOTIFYICON(wParam, lParam, *) 
-{
-	if (lParam = 0x203) { 
-		global TitteGUI
-		try
-		{
-			if !winexist(TitteGUI)
-				Settings
-			else
-				WinActivate (TitteGUI)
-		}
-		catch
-		{
-			Settings
-		}
-    }
-	else if (lParam = 0x200) {
-		if (A_IconNumber != 1 and A_IconNumber != 2 and A_IconNumber != 3)
-		{
-			global IniFileReadTime
-			ToolTip1 := 0
-			ToolTip2 := 0
-			MouseGetPos &OutputVarX, &OutputVarY
-			PosXOld := OutputVarX
-			PosYOld := OutputVarY
-			
-			if !IniFileReadTime
-			{
-				global StartTime
-				global TimeAccount
-				global UserNameAccount
-				
-				
-				if (isset(StartTime) and StartTime != 0)	
-					ToolTip1 := 1
-			}
-			
-			global Temporizador
-			global TemporizadorNotiTooltip
-			if Temporizador and TemporizadorNotiTooltip
-			{	
-				global SecondsTemp
-				global StartTimeTemp
-				
-				if isset(SecondsTemp)
-					ToolTip2 := 1 
-			}
-			
-			
-			
-			While(PosXOld = OutputVarX and PosYOld = OutputVarY)
-			{
-				if ToolTip1
-				{
-					ElapsedTime := (A_TickCount - StartTime)//1000
-					StartTime := A_TickCount
-					
-					if !IsInteger(TimeAccount)
-					{
-						TimeAccount := StrSplit(TimeAccount, ":")
-						TimeAccount := TimeAccount[1] * 3600 + TimeAccount[2] * 60 + TimeAccount[3]
-					}
-					
-					TimeAccount := FormatSeconds(TimeAccount - ElapsedTime)
-					
-					if InStr(A_IconTip, LenguajeList.Mensajes["IconTip5"])
-					{
-						A_IconTipnew := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount  "`n" LenguajeList.Mensajes["IconTip3"] " " TimeAccount
-					}
-					else
-						A_IconTipnew := LenguajeList.Mensajes["IconTip7"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " TimeAccount
-					
-					if (A_IconTip != A_IconTipnew)
-						A_IconTip := A_IconTipnew
-				}
-				
-				if ToolTip2
-				{
-					TimeRestTemp := SecondsTemp - (A_TickCount - StartTimeTemp)//1000
-					if (TimeRestTemp < 0)
-						TimeRestTemp := 0
-					if !InStr(A_IconTip, "Temporizador")
-						global AIconTipold := A_IconTip
-						
-					A_IconTip := AIconTipold "`n" LenguajeList.Mensajes["IconTip4"] " " FormatSeconds(TimeRestTemp)
-				}
-				
-				MouseGetPos &OutputVarX, &OutputVarY
-				sleep(1)
-			}	
-			
-			
-		}
-	}
-}
-	
 try
 {
 	if FileExist("Actualizar.exe.new")
@@ -3867,6 +4499,22 @@ try
 		
 		FileMove A_WorkingDir "\Actualizar.exe.new", A_WorkingDir "\Actualizar.exe", 1
 	}
+}
+
+try 
+{
+	if (RegRead("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "EnableBalloonTips") != "0")
+		RegWrite "0", "REG_DWORD", "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "EnableBalloonTips"
+}
+catch
+	RegWrite "0", "REG_DWORD", "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "EnableBalloonTips"
+
+OnExit ExitFunc
+
+ExitFunc(ExitReason, ExitCode)
+{
+	if ProcessExist("PingHostName.exe")
+		ProcessClose "PingHostName.exe"
 }
 	
 SetTimer VerefyConx, (VerificarConxCada * 1000)
@@ -4036,11 +4684,12 @@ VerefyConx()
 										
 									A_IconTip := LenguajeList.Mensajes["IconTip5"]
 										
-									if (DataSesion = "")
-										DataSesion := IniRead("options.ini", "settings", "DataSesion")	
-											
+		
 									if !IniFileReadTime
 									{	
+										if (DataSesion = "")
+											DataSesion := IniRead("options.ini", "settings", "DataSesion")	
+										
 										if (DataSesion != "")
 										{
 											IpResolveEtecsa := "Failed"
@@ -4082,7 +4731,6 @@ VerefyConx()
 												{
 													try
 													{
-														UserNameDataSesion := StrSplit(DataSesion,"&")
 														requestdata := "op=getLeftTime&" DataSesion
 														whr := ComObject("WinHttp.WinHttpRequest.5.1")
 														whr.Open("POST", "https://secure.etecsa.net:8443/EtecsaQueryServlet")
@@ -4097,19 +4745,29 @@ VerefyConx()
 														}
 														else
 														{
-															A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameDataSesion[UserNameDataSesion.Length] "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
+															A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
 															
 															StartTime := A_TickCount
 															
-															UserNameAccount := UserNameDataSesion[UserNameDataSesion.Length]
 															aTime := StrSplit(whr.ResponseText, ":")
-															SecondsaTime := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
-															TimeAccount := SecondsaTime
+															TimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
+															
+															if TimeRed
+															{
+																global sockserver
+																global ServerOnPort
+																msgtosend := UserNameAccount ";" TimeAccount ";" StartTime
+																respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
+																respsize := StrPut(msgtosend, respbuf, Encoding)
+																sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
+															}
 														}
 													}
 												}
 											}
 										}
+										else
+											StartTime := 0
 									}
 									
 									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])		
@@ -4227,7 +4885,8 @@ VerefyConx()
 										{
 											Temporizador := 0
 											if NotiNormal
-												TrayTip LenguajeList.Mensajes["TrayTip8"], LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+												Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip8"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+
 											A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
 											A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
 										}
@@ -4268,7 +4927,7 @@ VerefyConx()
 														DivisionPartTempFinal := DivisionPartTemp//3
 														if (ElapsedTimeTemp >= (((NotificationTemp-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
 														{
-															TrayTip LenguajeList.Mensajes["TrayTip9"] FormatSeconds(SecondsTemp-ElapsedTimeTemp), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+															TrayTip LenguajeList.Mensajes["TrayTip9"] "`n" FormatSeconds(SecondsTemp-ElapsedTimeTemp), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
 															NotificationTemp += 1
 														}
 													}
@@ -4276,7 +4935,8 @@ VerefyConx()
 													{
 														if (ElapsedTimeTemp >= SecondsTemp)
 														{
-															TrayTip LenguajeList.Mensajes["TrayTip10"] FormatSeconds(0), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+															TrayTip LenguajeList.Mensajes["TrayTip10"] "`n" FormatSeconds(0), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+															
 															NotificationTemp := 0
 														}
 													}
@@ -4284,7 +4944,8 @@ VerefyConx()
 												else
 												{	
 													if NotiNormal
-														TrayTip LenguajeList.Mensajes["TrayTip11"],LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+														Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip11"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+													
 													TemporizadorNotiWindows := 0
 													NotificationTemp :=0
 												}
@@ -4339,7 +5000,8 @@ VerefyConx()
 											else
 											{
 												if NotiNormal
-													TrayTip LenguajeList.Mensajes["TrayTip12"],LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+													Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip12"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+													
 												TemporizadorNotiIcon := 0
 												NotificationTempIcon :=0
 											}
@@ -4485,7 +5147,8 @@ VerefyConx()
 										{
 											Temporizador := 0
 											if NotiNormal
-												TrayTip LenguajeList.Mensajes["TrayTip8"],LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+												Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip8"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+											
 											A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
 											A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
 										}
@@ -4526,7 +5189,7 @@ VerefyConx()
 														DivisionPartTempFinal := DivisionPartTemp//3
 														if (ElapsedTimeTemp >= (((NotificationTemp-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
 														{
-															TrayTip LenguajeList.Mensajes["TrayTip9"] FormatSeconds(SecondsTemp-ElapsedTimeTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+															TrayTip LenguajeList.Mensajes["TrayTip9"] "`n" FormatSeconds(SecondsTemp-ElapsedTimeTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
 															NotificationTemp +=1
 														}
 													}
@@ -4534,7 +5197,7 @@ VerefyConx()
 													{
 														if (ElapsedTimeTemp >= SecondsTemp)
 														{
-															TrayTip LenguajeList.Mensajes["TrayTip10"] FormatSeconds(0),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+															TrayTip LenguajeList.Mensajes["TrayTip10"] "`n" FormatSeconds(0),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
 															NotificationTemp :=0
 														}
 													}
@@ -4542,7 +5205,8 @@ VerefyConx()
 												else
 												{
 													if NotiNormal
-														TrayTip LenguajeList.Mensajes["TrayTip11"],LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+														Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip11"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+														
 													TemporizadorNotiWindows := 0
 													NotificationTemp :=0
 												}
@@ -4597,7 +5261,8 @@ VerefyConx()
 											else
 											{
 												if NotiNormal
-													TrayTip LenguajeList.Mensajes["TrayTip12"],LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+													Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip12"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+
 												TemporizadorNotiIcon := 0
 												NotificationTempIcon :=0
 											}
@@ -4667,7 +5332,8 @@ VerefyConx()
 									Temporizador := 0
 									SecondsTemp := 0
 									if NotiNormal
-										TrayTip LenguajeList.Mensajes["TrayTip13"],LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+										Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip13"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+
 								}
 								
 								A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
@@ -4773,7 +5439,8 @@ VerefyConx()
 					Temporizador := 0
 					SecondsTemp := 0
 					if NotiNormal
-						TrayTip LenguajeList.Mensajes["TrayTip13"],LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+						Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip13"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+					
 				}
 				
 				A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
@@ -4947,6 +5614,8 @@ PlayGiftAction(GifSelectedText, EfectoEntradaGif, PosVGif, UpDownEfectoEntradaGi
 		Ygift := (A_ScreenHeight - H - gif1.newheight + PosVGif)
 		RightOculto := (A_ScreenWidth - gif1.newwidth)
 		RightOcultold := RightOculto
+		
+		
 		
 		if (BarradeTareasGif)
 		{
@@ -5361,3 +6030,1145 @@ SoundToPlay(sound)
 	try
 		SoundPlay A_WorkingDir "\Sonidos\" sound
 }
+
+/*
+ValidIP(Ip) {
+	IpVerify := StrSplit(Ip, ".")
+
+	if (IpVerify.Length != 4)
+		Return 0
+		
+	For a in IpVerify
+	{
+		try
+		{
+			If !isdigit(a)
+				Return 0
+
+			If (a < 0 or a > 255)
+				Return 0
+		}
+		Catch
+			Return 0
+			
+	}
+	Return 1
+}
+
+
+ConvertMask(Mask)
+{
+	MapMask := Map()
+	Switch Mask
+	{
+		Case "255.255.255.255", "/32":
+		{
+			MapMask := Map("Total", 0, "Prefix", "/32", "Mask", "255.255.255.255")
+			return MapMask
+		}
+		Case "255.255.255.254", "/31":
+		{
+			MapMask := Map("Total", 0, "Prefix", "/31", "Mask", "255.255.255.254")
+			return MapMask
+		}
+		Case "255.255.255.252", "/30":
+		{
+			MapMask := Map("Total", 2, "Prefix", "/30", "Mask", "255.255.255.252")
+			return MapMask
+		}
+		Case "255.255.255.248", "/29":
+		{
+			MapMask := Map("Total", 6, "Prefix", "/29", "Mask", "255.255.255.248")
+			return MapMask
+		}
+		Case "255.255.255.240", "/28":
+		{
+			MapMask := Map("Total", 14, "Prefix", "/28", "Mask", "255.255.255.240")
+			return MapMask
+		}
+		Case "255.255.255.224", "/27":
+		{
+			MapMask := Map("Total", 30, "Prefix", "/27", "Mask", "255.255.255.224")
+			return MapMask
+		}
+		Case "255.255.255.192", "/26":
+		{
+			MapMask := Map("Total", 62, "Prefix", "/26", "Mask", "255.255.255.192")
+			return MapMask
+		}
+		Case "255.255.255.128", "/25":
+		{
+			MapMask := Map("Total", 126, "Prefix", "/25", "Mask", "255.255.255.128")
+			return MapMask
+		}
+		Case "255.255.255.0", "/24":
+		{
+			MapMask := Map("Total", 254, "Prefix", "/24", "Mask", "255.255.255.0")
+			return MapMask
+		}
+		Case "255.255.254.0", "/23":
+		{
+			MapMask := Map("Total", 510, "Prefix", "/23", "Mask", "255.255.254.0")
+			return MapMask
+		}
+		Case "255.255.252.0", "/22":
+		{
+			MapMask := Map("Total", 1022, "Prefix", "/22", "Mask", "255.255.252.0")
+			return MapMask
+		}
+		Case "255.255.248.0", "/21":
+		{
+			MapMask := Map("Total", 2046, "Prefix", "/21", "Mask", "255.255.248.0")
+			return MapMask
+		}
+		
+		Case "255.255.240.0", "/20":
+		{
+			MapMask := Map("Total", 4094, "Prefix", "/20", "Mask", "255.255.240.0")
+			return MapMask
+		}
+		Case "255.255.224.0", "/19":
+		{
+			MapMask := Map("Total", 8190, "Prefix", "/19", "Mask", "255.255.224.0")
+			return MapMask
+		}
+		Case "255.255.195.0", "/18":
+		{
+			MapMask := Map("Total", 16382, "Prefix", "/18", "Mask", "255.255.195.0")
+			return MapMask
+		}
+		Case "255.255.128.0", "/17":
+		{
+			MapMask := Map("Total", 32766, "Prefix", "/17", "Mask", "255.255.128.0")
+			return MapMask
+		}
+		Case "255.255.0.0", "/16":
+		{
+			MapMask := Map("Total", 65534, "Prefix", "/16", "Mask", "255.255.0.0")
+			return MapMask
+		}
+		Case "255.254.0.0", "/15":
+		{
+			MapMask := Map("Total", 131070 "Prefix", "/15", "Mask", "255.254.0.0")
+			return MapMask
+		}
+		Case "255.252.0.0", "/14":
+		{
+			MapMask := Map("Total", 262142 "Prefix", "/14", "Mask", "255.252.0.0")
+			return MapMask
+		}
+		Case "255.248.0.0", "/13":
+		{
+			MapMask := Map("Total", 524286 "Prefix", "/13", "Mask", "255.248.0.0")
+			return MapMask
+		}
+		Case "255.240.0.0", "/12":
+		{
+			MapMask := Map("Total", 1048574 "Prefix", "/12", "Mask", "255.240.0.0")
+			return MapMask
+		}
+		Case "255.224.0.0", "/11":
+		{
+			MapMask := Map("Total", 2097150 "Prefix", "/11", "Mask", "255.224.0.0")
+			return MapMask
+		}
+		Case "255.192.0.0", "/10":
+		{
+			MapMask := Map("Total", 4194302 "Prefix", "/10", "Mask", "255.192.0.0")
+			return MapMask
+		}
+		Case "255.128.0.0", "/9":
+		{
+			MapMask := Map("Total", 8388606 "Prefix", "/9", "Mask", "255.128.0.0")
+			return MapMask
+		}
+		Case "255.0.0.0", "/8":
+		{
+			MapMask := Map("Total", 16777214 "Prefix", "/8", "Mask", "255.0.0.0")
+			return MapMask
+		}
+		Case "254.0.0.0", "/7":
+		{
+			MapMask := Map("Total", 33554430 "Prefix", "/7", "Mask", "254.0.0.0")
+			return MapMask
+		}
+		Case "252.0.0.0", "/6":
+		{
+			MapMask := Map("Total", 67108862, "Prefix", "/6", "Mask", "252.0.0.0")
+			return MapMask
+		}
+		Case "248.0.0.0", "/5":
+		{
+			MapMask := Map("Total", 134217726 "Prefix", "/5", "Mask", "248.0.0.0")
+			return MapMask
+		}
+		Case "240.0.0.0", "/4":
+		{
+			MapMask := Map("Total", 268435454 "Prefix", "/4", "Mask", "240.0.0.0")
+			return MapMask
+		}
+		Case "224.0.0.0", "/3":
+		{
+			MapMask := Map("Total", 536870910 "Prefix", "/3", "Mask", "224.0.0.0")
+			return MapMask
+		}
+		Case "192.0.0.0", "/2":
+		{
+			MapMask := Map("Total", 1073741822 "Prefix", "/2", "Mask", "192.0.0.0")
+			return MapMask
+		}
+		Case "128.0.0.0", "/1":
+		{
+			MapMask := Map("Total", 2147483646 "Prefix", "/1", "Mask", "128.0.0.0")
+			return MapMask
+		}
+		Case "0.0.0.0", "/0":
+		{
+			MapMask := Map("Total", 4294967294 "Prefix", "/0", "Mask", "0.0.0.0")
+			return MapMask
+		}
+		Default:
+			return 0
+	}
+}
+*/
+
+Bin(x){
+	return (x>>1 ? Bin(x>>1):"") x &1 
+}
+
+Dec(x){
+	return (StrLen(x) > 1 ? Dec(SubStr(x,1,-1)) << 1:0) | SubStr(x, -1) 
+}	
+
+
+
+/*
+Notify.Show('Error', 'Something has gone wrong!', 'iconx',,, 'BC=C72424')
+Notify.Show('Info', 'Some information to show.', 'iconi',,, 'TC=black MC=black BC=75AEDC')
+*/
+/********************************************************************************************
+@description Notify - This class makes it easier to create and display notification GUIs.
+@author XMCQCX
+@date 2024/07/05
+@version 1.6.0
+@see {@link https://github.com/XMCQCX/Notify_Class Notify_Class - GitHub} | {@link https://www.autohotkey.com/boards/viewtopic.php?f=83&t=129635 Notify_Class - AHK Forum}
+@credits
+- Notify by gwarble. {@link https://www.autohotkey.com/board/topic/44870-notify-multiple-easy-tray-area-notifications-v04991/ source}
+- Notify by the-Automator. {@link https://www.the-automator.com/downloads/maestrith-notify-class-v2/ source}
+- FrameShadow by Klark92. {@link https://www.autohotkey.com/boards/viewtopic.php?f=6&t=29117&hilit=FrameShadow source}
+- WiseGui by SKAN. {@link https://www.autohotkey.com/boards/viewtopic.php?t=94044 source}
+@features
+- Change text, font, color, image, animation.
+- Rounded or edged corners.
+- Position at different locations on the screen.
+- Multi-Monitor support.
+- Multi-Script support. Finds all GUIs from all scripts and positions them accordingly.
+- Play a sound when it appears.
+- Call a function when clicking on it.
+@methods
+- Show - Builds and shows a notification GUI.
+- SoundsList() - Lists and plays all available sounds.
+- MonitorGetInfo() - Displays information about the monitors connected to the system.
+- Exist(tag) - Checks if a GUI with the specified tag exists and returns the unique ID (HWND) of the first matching GUI.
+- Destroy(hwnd or tag) - Destroys GUIs. Specifying a tag destroys every GUI containing this tag across all scripts.
+- DestroyAllOnMonitorAtPosition(monitorNumber, position) - Destroys all GUIs on a specific monitor at a specific position.
+- DestroyAllOnAllMonitorAtPosition(position) - Destroys all GUIs on all monitors at a specific position.
+- DestroyAllOnMonitor(monitorNumber) - Destroys all GUIs on a specific monitor.
+- DestroyAll() - Destroys all GUIs.
+@example
+#include <v2\Notify\Notify>
+Notify.MonitorGetInfo()
+Notify.Show('The quick brown fox jumps over the lazy dog.',,,,, 'dur=4 pos=tc')
+Notify.Show('Alert!', 'You are being warned.', 'icon!',,, 'TC=black MC=black BC=DCCC75')
+Notify.Show('Error', 'Something has gone wrong!', 'iconx', 'soundx',, 'BC=C72424 style=edge show=expand hide=expand')
+Notify.Show('Info', 'Some information to show.', 'iconi',,, 'TC=black MC=black BC=75AEDC style=edge show=slideWest@250 hide=slideEast@250')
+
+; ===== Destroy a specific GUI. =====
+
+mNotifyGUI := Notify.Show('The quick brown fox jumps over the lazy dog.',,,,, 'dur=0 pos=tc')
+^F1::Notify.Destroy(mNotifyGUI['hwnd'])
+
+; With the TAG option. It destroys every GUI containing this tag across all scripts.
+
+Notify.Show('Notify Title',,,,, 'dur=0 pos=ct tag=myTAG')
+^F2::Notify.Destroy('myTAG')
+
+; ===== Modify the icon and text upon left-clicking the GUI using a callback. =====
+
+mNotifyGUI_CB := Notify.Show('Title value 0', 'Message value 0', A_WinDir '\system32\user32.dll|Icon5',, NotifyGUICallback, 'dur=0 dgc=0')
+
+NotifyGUICallback(*)
+{
+    mNotifyGUI_CB['pic'].Value := A_WinDir '\system32\user32.dll'
+
+    Loop 3 {
+        mNotifyGUI_CB['title'].Text := 'Title value ' A_Index
+        mNotifyGUI_CB['msg'].Text := 'Message value ' A_Index      
+        Sleep(2000)
+    }
+
+    Notify.Destroy(mNotifyGUI_CB['hwnd'])
+}
+
+; ===== Progress Bar Example. =====
+
+mNotifyGUI_Prog := Notify.Show('Progress Bar Example',,,,, 'dur=0 prog=w325 dgc=0')
+
+Loop 5 {
+    mNotifyGUI_Prog['prog'].Value := A_Index * 20
+    Sleep(1000)
+}
+
+Notify.Destroy(mNotifyGUI_Prog['hwnd'])
+
+; ===== Lock keys indicators. =====
+
+~*NumLock:: 
+~*ScrollLock::
+~*Insert::	
+{
+    Sleep(10)  
+	thisHotkey := SubStr(A_ThisHotkey, 3)
+	Notify.Destroy(thisHotkey)
+
+	if (GetKeyState(thisHotkey, 'T'))
+		Notify.Show(thisHotkey ' ON',,,,, 'pos=bl dur=3 ts=20 tfo=italic bc=00A22B style=edge show=0 dgc=0 tag=' thisHotkey)
+	else
+		Notify.Show(thisHotkey ' OFF',,,,, 'pos=bl dur=3 ts=20 tfo=italic bc=F09800 style=edge show=0 dgc=0 tag=' thisHotkey) 		
+}
+
+~*CapsLock:: 
+{
+	Sleep(10)
+	thisHotkey := SubStr(A_ThisHotkey, 3)
+	Notify.Destroy(thisHotkey)
+
+	if (GetKeyState(thisHotkey, 'T'))
+		Notify.Show(thisHotkey ' ON',,,,, 'pos=bl dur=0 ts=20 tfo=italic tc=red bc=white dgc=0 tag=' thisHotkey)  
+}
+
+********************************************************************************************/
+Class Notify {
+
+/********************************************************************************************
+@method Show(title, msg, icon, sound, callback, options)
+@description Builds and shows a notification GUI.    
+@param title Title
+@param msg Message
+@param icon {@link https://www.autohotkey.com/docs/v2/lib/GuiControls.htm#Picture Picture GuiControls}
+- The path of an icon/picture. See the link above for supported file types.
+- String: `'icon!'`, `'icon?'`, `'iconx'`, `'iconi'`
+- Icon from dll: `A_WinDir '\system32\user32.dll|Icon4'`
+@param sound {@link https://www.autohotkey.com/docs/v2/lib/SoundPlay.htm SoundPlay function}
+- The path of the WAV file to be played.
+- String: `'soundx'`, `'soundi'`
+- Filename of WAV file located in "C:\Windows\Media" and "Music\Sounds". For example: `'Ding'`, `'tada'`, `'Windows Error'` etc.
+- Call `Notify.SoundsList()` to list and hear all the available sounds.
+@param callback Function object to call when left-clicking on the GUI. {@link https://www.autohotkey.com/docs/v2/misc/Functor.htm Function Objects}
+@param options For example: `'POS=TL DUR=6 IW=70 TF=Impact TS=42 TC=GREEN MC=blue BC=Silver STYLE=edge SHOW=Fade Hide=Fade@250'`
+- The string is case-insensitive.
+- The asterisk (*) indicates the default option.
+- `POS` - Position
+  - `BR` - Bottom right*
+  - `BC` - Bottom center
+  - `BL` - Bottom left
+  - `TL` - Top left
+  - `TC` - Top center
+  - `TR` - Top right
+  - `CT` - Center
+- `DUR` - Display duration (in seconds). Set it to 0 to keep it on the screen until left-clicking on the GUI. `*8`
+- `MON` - Monitor number to display the GUI. Call `Notify.MonitorGetInfo()` to show the monitor numbers. AutoHotkey displays different monitor numbers than Windows System Display and NVIDIA Control Panel.
+- `IW` - Image width - `*32` If only one dimension (width or height) is specified, the other dimension will be automatically set preserving its aspect ratio.
+- `IH` - Image height `*32`
+- `TF` - Title font `*Segoe UI bold`
+- `TFO` - Title font options. For example: `tfo=underline italic strike`
+- `TS` - Title size `*15`
+- `TC` - Title color `*White`
+- `TALI` - Title alignment
+  - `LEFT`*
+  - `RIGHT`
+  - `CENTER`
+- `MF` - Message font `*Segoe UI`
+- `MFO` - Message font options. For example: `mfo=underline italic strike`
+- `MS` - Message size `*12`
+- `MC` - Message color `*White`
+- `MALI` - Message alignment
+  - `LEFT`* 
+  - `RIGHT`
+  - `CENTER`
+- `PROG` - Progress bar. For example: `prog=w325`, `prog=w200 h80 cGreen` {@link https://www.autohotkey.com/docs/v2/lib/GuiControls.htm#Progress Progress Options}
+- `BC` - Background color `*1F1F1F`
+- `STYLE` - Notification style
+  - `ROUND` - Rounded corners*
+  - `EDGE` - Edged corners
+- `TAG` - Marker to identify a GUI. The Destroy method accepts a handle or a tag, it destroys every GUI containing this tag across all scripts.
+- `BDR` - Border. Not compatible with the round style.
+  - `0` - No border
+  - `1` - Border*
+- `WSTC` - WinSetTransColor. Not compatible with the round style, fade animation. For example: `style=edge bdr=0 bc=black WSTC=black` {@link https://www.autohotkey.com/docs/v2/lib/WinSetTransColor.htm WinSetTransColor}
+- `WSTP` - WinSetTransparent. Not compatible with the round style, fade animation. For example: `style=edge wstp=120` {@link https://www.autohotkey.com/docs/v2/lib/WinSetTransparent.htm WinSetTransparent} 
+- `PADX` - The space between the left or right edge of the GUI and the edge of the screen. Can range from 0 to 25.
+- `PADY` - The space between the top or bottom edge of the first GUI created at a position and the edge of the screen. Can range from 0 to 25.
+- `SHOW` and `HIDE` - Animation when showing and hiding the GUI. The duration, which is optional, can range from 1 to 2500 milliseconds. For example: `STYLE=EDGE SHOW=SLIDEWEST HIDE=SLIDEEAST@250`
+- THE ROUND STYLE IS NOT COMPATIBLE WITH MOST ANIMATIONS! The round style renders only the fade-in (SHOW=Fade@225) animation correctly. The corners become edged during the fade-out if (HIDE=Fade@225) is used.
+  - `0` - No animation.
+  - `Fade`
+  - `Expand`
+  - `SlideEast`
+  - `SlideWest`
+  - `SlideNorth`
+  - `SlideSouth`
+  - `SlideNorthEast`
+  - `SlideNorthWest`
+  - `SlideSouthEast`
+  - `SlideSouthWest`
+  - `RollEast`
+  - `RollWest`
+  - `RollNorth`
+  - `RollSouth`
+  - `RollNorthEast`
+  - `RollNorthWest`
+  - `RollSouthEast`
+  - `RollSouthWest`
+- `DGC` - Destroy GUI click. Allow or prevent the GUI from being destroyed when clicked.
+  - `0` - Clicking on the GUI does not destroy it.   
+  - `1` - Clicking on the GUI destroys it.*
+- `DG` - Destroy GUIs before creating the new GUI.
+  - `0` - Do not destroy GUIs.*
+  - `1` - Destroy all GUIs on the monitor option at the position option.
+  - `2` - Destroy all GUIs on all monitors at the position option.
+  - `3` - Destroy all GUIs on the monitor option.
+  - `4` - Destroy all GUIs.
+  - `5` - Destroy all GUIs containing the tag. For example: `tag=myTAG dg=5`
+- `OPT` - Sets various options and styles for the appearance and behavior of the window. `*+Owner -Caption +AlwaysOnTop` {@link https://www.autohotkey.com/docs/v2/lib/Gui.htm#Opt GUI Opt}    
+@returns Map object
+********************************************************************************************/
+    static Show(title:='', msg:='', icon:='', sound:='', callback:='', options:='') => this._Show(title, msg, icon, sound, callback, options)
+    
+    static __New()
+    {
+        this.mNotifyGUIs := Map(), this.mNotifyGUIs.CaseSense := 'off'
+        this.mDefault := Map(), this.mDefault.CaseSense := 'off'
+        this.mDefault['pos'] := 'br'           ; Position
+        this.mDefault['dur'] := 8              ; Duration    
+        this.mDefault['iw'] := 32              ; Image width
+        this.mDefault['ih'] := 32              ; Image height
+        this.mDefault['tf'] := 'Segoe UI bold' ; Title font
+        this.mDefault['tfo'] := ''             ; Title font options.
+        this.mDefault['ts'] := 15              ; Title size
+        this.mDefault['tali'] := 'left'        ; Title alignment
+        this.mDefault['tc'] := 'white'         ; Title color
+        this.mDefault['mf'] := 'Segoe UI'      ; Message font
+        this.mDefault['mfo'] := ''             ; Message font options.
+        this.mDefault['ms'] := 12              ; Message size
+        this.mDefault['mc'] := 'white'         ; Message color
+        this.mDefault['mali'] := 'left'        ; Message alignment
+        this.mDefault['prog'] := ''            ; Progress bar
+        this.mDefault['bc'] := '1F1F1F'        ; Background color
+        this.mDefault['style'] := 'round'      ; Style
+        this.mDefault['tag'] := ''             ; GUI window title identifying marker.
+        this.mDefault['dg'] := 0               ; Destroy GUIs.
+        this.mDefault['dgc'] := 1              ; Destroy GUI click.
+        this.mDefault['bdr'] := 1              ; Border   
+        this.mDefault['wstc'] := ''            ; WinSetTransColor 
+        this.mDefault['wstp'] := ''            ; WinSetTransparent    
+        this.mDefault['mon'] := MonitorGetPrimary() ; Monitor number to display the GUI.
+        this.mDefault['opt'] := '+Owner -Caption +AlwaysOnTop' ; GUI options        
+        this.padH := 10 ; Space between GUIs
+
+        this.mAW := Map(), this.mAW.CaseSense := 'off'  
+        this.mAW['0']              := 0         ; No animation
+        this.mAW['fade']           := '0x80000' ; AW_BLEND
+        this.mAW['expand']         := '0x00010' ; AW_CENTER
+        this.mAW['slideEast']      := '0x40001' ; AW_SLIDE | AW_HOR_POSITIVE
+        this.mAW['slideWest']      := '0x40002' ; AW_SLIDE | AW_HOR_NEGATIVE
+        this.mAW['slideNorth']     := '0x40008' ; AW_SLIDE | AW_VER_NEGATIVE
+        this.mAW['slideSouth']     := '0x40004' ; AW_SLIDE | AW_VER_POSITIVE
+        this.mAW['slideNorthEast'] := '0x40009' ; AW_SLIDE | AW_VER_NEGATIVE | AW_HOR_POSITIVE
+        this.mAW['slideNorthWest'] := '0x4000A' ; AW_SLIDE | AW_VER_NEGATIVE | AW_HOR_NEGATIVE
+        this.mAW['slideSouthEast'] := '0x40005' ; AW_SLIDE | AW_VER_POSITIVE | AW_HOR_POSITIVE
+        this.mAW['slideSouthWest'] := '0x40006' ; AW_SLIDE | AW_VER_POSITIVE | AW_HOR_NEGATIVE
+        this.mAW['rollEast']       := '0x00001' ; AW_HOR_POSITIVE
+        this.mAW['rollWest']       := '0x00002' ; AW_HOR_NEGATIVE    
+        this.mAW['rollNorth']      := '0x00008' ; AW_VER_NEGATIVE
+        this.mAW['rollSouth']      := '0x00004' ; AW_VER_POSITIVE
+        this.mAW['rollNorthEast']  := '0x00009' ; ROLL_DIAG_BL_TO_TR
+        this.mAW['rollNorthWest']  := '0x0000a' ; ROLL_DIAG_BR_TO_TL 
+        this.mAW['rollSouthEast']  := '0x00005' ; ROLL_DIAG_TL_TO_BR 
+        this.mAW['rollSouthWest']  := '0x00006' ; ROLL_DIAG_TR_TO_BL 
+        
+        this.mIconsUser32 := Map(), this.mIconsUser32.CaseSense := 'off'
+        this.mIconsUser32['icon!'] := 2
+        this.mIconsUser32['icon?'] := 3
+        this.mIconsUser32['iconx'] := 4
+        this.mIconsUser32['iconi'] := 5             
+
+        this.pathSoundsFolder := RegRead('HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders', 'My Music') '\Sounds'
+        this.mSounds := Map(), this.mSounds.CaseSense := 'off'
+        this.mSounds['soundx'] := '*16'
+        this.mSounds['soundi'] := '*64'
+
+        for _, path in [A_WinDir '\Media', this.pathSoundsFolder]
+            Loop Files path '\*.wav'
+                SplitPath(A_LoopFilePath,,,, &fileName), this.mSounds[fileName] := A_LoopFilePath
+
+        this.aSounds := Array()
+
+        for soundName in this.mSounds
+            this.aSounds.Push(soundName)       
+    }
+
+    ;============================================================================================
+
+    static _Show(title:='', msg:='', icon:='', sound:='', callback:='', options:='') 
+    {           
+        static gIndex := 0, padXpicTxt := 10
+
+        if !title && !msg && !icon
+            return   
+        
+        m := Map(), m.CaseSense := 'off'
+
+        while RegExMatch(Trim(options), 'i)(\w+)=(.*?(?=\s+\w+=|$))', &match, IsSet(match) ? match.Pos + match.Len : 1)
+            m[Trim(match[1])] := Trim(match[2])            
+
+        switch {
+            case (m.has('iw') && !m.has('ih')) : m['ih'] := -1
+            case (m.has('ih') && !m.has('iw')) : m['iw'] := -1
+        }
+
+        for key, value in this.mDefault
+            if !m.has(key)
+                m[key] := value
+
+        for value in ['show', 'hide'] {          
+            if (m.has(value)) {
+                p := StrSplit(m[value], '@')
+                m[value 'Hex'] := this.mAW[p[1]]
+                (p.Length > 1) ? m[value 'Dur'] := Min(2500, Max(1, Format("{:d}", p[2]))) : ''
+            }
+        }
+
+        m['mon'] := Integer(m['mon'])
+        monCount := MonitorGetCount()
+
+        if !(m['mon'] >= 1 && m['mon'] <= monCount)
+            m['mon'] := MonitorGetPrimary()
+
+        ;==============================================
+
+        if !RegExMatch(m['style'], 'i)(round|edge)$')
+            m['style'] := this.mDefault['style']         
+ 
+        switch m['style'], 'off' {
+            case 'edge':
+            {
+                if !m.has('showHex') {
+                    switch m['pos'], 'off' {
+                        case 'br', 'tr': m['showHex'] := this.mAW['slideWest']
+                        case 'bl', 'tl': m['showHex'] := this.mAW['slideEast']
+                        case 'bc': m['showHex'] := this.mAW['slideNorth']
+                        case 'tc': m['showHex'] := this.mAW['slideSouth']
+                        case 'ct': m['showHex'] := this.mAW['expand']
+                    }
+                }
+
+                if !m.has('hideHex') {
+                    switch m['pos'], 'off' {
+                        case 'br', 'tr': m['hideHex'] := this.mAW['slideEast']
+                        case 'bl', 'tl': m['hideHex'] := this.mAW['slideWest']
+                        case 'bc': m['hideHex'] := this.mAW['slideSouth']
+                        case 'tc': m['hideHex'] := this.mAW['slideNorth']
+                        case 'ct': m['hideHex'] := this.mAW['expand']
+                    }
+                }
+              
+                (!m.has('showDur')) ? m['showDur'] := 75 : '' 
+                (!m.has('hideDur')) ? m['hideDur'] := 100 : '' 
+                (!m.has('padX')) || !(m['padX'] >= 0 && m['padX'] <= 25) ? m['padX'] := 0 : ''  
+                (!m.has('padY')) || !(m['padY'] >= 0 && m['padY'] <= 25) ? m['padY'] := 0 : ''                                   
+            }
+
+            case 'round': 
+            {
+                (!m.has('showHex')) ? m['showHex'] := this.mAW['fade'] : ''                              
+                (!m.has('hideHex')) ? m['hideHex'] := this.mAW['0'] : ''
+                (!m.has('showDur')) ? m['showDur'] := 1 : ''
+                (!m.has('hideDur')) ? m['hideDur'] := 0 : ''                
+                (!m.has('padX') || !(m['padX'] >= 0 && m['padX'] <= 25)) ? m['padX'] := 10 : '' 
+                (!m.has('padY') || !(m['padY'] >= 0 && m['padY'] <= 25)) ? m['padY'] := 10 : ''                 
+            }
+        }
+
+        ;==============================================  
+
+        switch m['dg'] {
+            case 1: this.DestroyAllOnMonitorAtPosition(m['mon'], m['pos'])
+            case 2: this.DestroyAllOnAllMonitorAtPosition(m['pos'])
+            case 3: this.DestroyAllOnMonitor(m['mon'])
+            case 4: this.DestroyAll()
+            case 5: m['tag'] ? this.Destroy(m['tag']) : ''
+        }
+
+        ;==============================================
+       
+        g := Gui(m['opt'], 'NotifyGUI_' m['mon'] '_' m['pos'] '_' m['padY'] (m['tag'] ? '_' m['tag'] : ''))
+        g.BackColor := m['bc']
+        g.MarginX := 15
+        g.MarginY := 15
+        g.gIndex := ++gIndex
+        m['hwnd'] := g.handle := g.hwnd
+     
+        for value in ['pos', 'mon', 'hideHex', 'hideDur', 'tag']
+            g.%value% := m[value]
+            
+        ;==============================================          
+
+        switch {
+            case FileExist(icon) || RegExMatch(icon, 'i)h(icon|bitmap).*\d+'):  
+                try m['pic'] := g.Add('Picture', 'w' m['iw'] ' h' m['ih'], icon)
+                    
+            case RegExMatch(icon, 'i)^(icon!|icon\?|iconx|iconi)$'):           
+                try m['pic'] := g.Add('Picture', 'w' m['iw'] ' h' m['ih'] ' Icon' this.mIconsUser32[icon], A_WinDir '\system32\user32.dll')
+
+            case RegExMatch(icon, 'i)(.+?\.(?:dll|exe))\|icon(\d+)', &mth) && FileExist(mth[1]):
+                try m['pic'] := g.Add('Picture', 'w' m['iw'] ' h' m['ih'] ' Icon' mth[2], mth[1])
+        }
+
+        ;============================================== 
+
+        MonitorGetWorkArea(m['mon'], &monWALeft, &monWATop, &monWARight, &monWABottom)
+        monWAwidth := Abs(monWARight - monWALeft)
+        monWAheight := Abs(monWABottom - monWATop)
+        visibleScreenWidth := monWAwidth / (A_ScreenDPI / 94) - m['padX']*2
+       
+        if m.Has('pic')
+            picWidth := this.ControlGetPicWidth(m['pic'], monWALeft, monWATop) + padXpicTxt + g.MarginX*2   
+     
+        if title
+            titleCtrlW := this.ControlGetTextWidth(title, m['tf'], m['ts'], monWALeft, monWATop)
+
+        if msg
+            msgCtrlW := this.ControlGetTextWidth(msg, m['mf'], m['ms'], monWALeft, monWATop)
+
+        if title && (titleCtrlW + (IsSet(picWidth) ? picWidth : 0)) > (visibleScreenWidth)           
+            titleWidth := visibleScreenWidth - (IsSet(picWidth) ? picWidth : 0)
+
+        if m['prog'] && RegExMatch(m['prog'], 'i)\bw(\d+)\b', &match_width)
+            progUserW := match_width[1]
+
+        if (m['prog'] && IsSet(progUserW)) && ((progUserW + (IsSet(picWidth) ? picWidth : 0)) > (visibleScreenWidth))  
+            progWidth := visibleScreenWidth - (IsSet(picWidth) ? picWidth : 0)
+      
+        if msg && (msgCtrlW + (IsSet(picWidth) ? picWidth : 0)) > (visibleScreenWidth) 
+            msgWidth := visibleScreenWidth - (IsSet(picWidth) ? picWidth : 0)
+
+        if (title && msg) || (title && m['prog']) || (msg && m['prog']) {
+            titleWidth := msgWidth := progWidth := Max( 
+                (title && IsSet(titleWidth) ? titleWidth : IsSet(titleCtrlW) ? titleCtrlW : 0),  
+                (msg && IsSet(msgWidth) ? msgWidth : IsSet(msgCtrlW) ? msgCtrlW : 0),  
+                (m['prog'] && IsSet(progWidth) ? progWidth : IsSet(progUserW) ? progUserW : 0)
+            )           
+        }
+
+        ;==============================================        
+        
+        if (title) {
+            g.SetFont('s' m['ts'] ' c' m['tc'] ' ' m['tfo'], m['tf'])
+            m['title'] := g.Add('Text', m['tali'] (IsSet(picWidth) ? ' x+' padXpicTxt : '') (IsSet(titleWidth) ? ' w' titleWidth : ''), title)                                     
+            m['tfo'] ? g.SetFont() : ''     
+        }
+
+        if (m['prog']) {
+            m['prog'] = 1 ? m['prog'] := '' : ''                 
+            m['prog'] := g.Add('Progress', (!title && IsSet(picWidth) ? ' x+' padXpicTxt : '') ' ' m['prog'] (!IsSet(progWidth) || (IsSet(progUserW) && (progUserW < progWidth)) ? '':  ' w' progWidth))
+        }
+
+        if (msg) {
+            title ? g.MarginY := 6 : ''               
+            g.SetFont('s' m['ms'] ' c' m['mc'] ' ' m['mfo'], m['mf'])
+            m['msg'] := g.Add('Text', m['mali'] ((!title && !m['prog']) && IsSet(picWidth) ? ' x+' padXpicTxt : '') (IsSet(msgWidth) ? ' w' msgWidth : ''), msg)
+        }
+
+        g.MarginY := 15
+        g.Show('Hide')
+        WinGetPos(,, &gW, &gH, g)
+        clickArea := g.Add('Text', 'x0 y0 w' gW ' h' gH ' BackgroundTrans')
+
+        if callback
+            clickArea.OnEvent('Click', callback)
+        
+        if (m['dgc'])
+            clickArea.OnEvent('Click', this.gDestroy.Bind(this, g, 'clickArea'))
+
+        g.OnEvent('Close', this.gDestroy.Bind(this, g, 'close'))
+        g.boundFuncTimer := this.gDestroy.Bind(this, g, 'timer')
+        
+        if sound
+            this.Sound(sound)
+        
+        ;==============================================
+        
+        switch m['pos'], 'off' {
+            case 'br', 'bc', 'bl': minMaxPosY := monWABottom              
+            case 'tr', 'tc', 'tl', 'ct': minMaxPosY := monWATop  
+        }
+
+        mDhwTmm := this.Set_DHWindows_TMMode(0, 'RegEx')  
+
+        for id in WinGetList('i)^NotifyGUI_' m['mon'] '_' m['pos'] ' ahk_class AutoHotkeyGUI') {            
+            WinGetPos(, &guiY,, &guiH, 'ahk_id ' id)
+            switch m['pos'], 'off' {
+                case 'br', 'bc', 'bl': minMaxPosY := Min(minMaxPosY, guiY)               
+                case 'tr', 'tc', 'tl', 'ct': minMaxPosY := Max(minMaxPosY, guiY + guiH)
+            }
+        }
+
+        this.Set_DHWindows_TMMode(mDhwTmm['dhwPrev'], mDhwTmm['tmmPrev'])
+
+        switch m['pos'], 'off' {
+            case 'br':
+            {           
+                if minMaxPosY = monWABottom
+                    gPos := 'x' monWARight - gW - m['padX'] ' y' monWABottom - gH - m['padY']
+                else 
+                    gPos := 'x' monWARight - gW - m['padX'] ' y' minMaxPosY - gH - this.padH                                 
+            }
+            case 'bc':
+            {
+                if minMaxPosY = monWABottom
+                    gPos := 'x' (monWARight - monWAwidth/2 - gW/2) ' y'  monWABottom - gH - m['padY']         
+                else
+                    gPos := 'x' (monWARight - monWAwidth/2 - gW/2) ' y' minMaxPosY - gH - this.padH
+            }
+            case 'bl': 
+            {
+                if minMaxPosY = monWABottom
+                    gPos := 'x' monWALeft + m['padX'] ' y' monWABottom - gH - m['padY']
+                else 
+                    gPos := 'x' monWALeft + m['padX'] ' y' minMaxPosY - gH - this.padH                 
+            }          
+            case 'tl': 
+            {
+                if minMaxPosY = monWATop
+                    gPos := 'x' monWALeft + m['padX'] ' y' monWATop + m['padY']
+                else
+                    gPos := 'x' monWALeft + m['padX'] ' y' minMaxPosY + this.padH 
+            }              
+            case 'tc': 
+            {
+                if minMaxPosY = monWATop
+                    gPos := 'x' (monWARight - monWAwidth/2 - gW/2) ' y' monWATop + m['padY']
+                else
+                    gPos := 'x' (monWARight - monWAwidth/2 - gW/2) ' y' minMaxPosY + this.padH 
+            }          
+            case 'tr': 
+            {
+                if minMaxPosY = monWATop
+                    gPos := 'x' monWARight - m['padX'] - gW ' y' monWATop + m['padY']
+                else
+                    gPos := 'x' monWARight - m['padX'] - gW ' y' minMaxPosY + this.padH
+            }     
+            case 'ct':
+            {
+                if minMaxPosY = monWATop
+                    gPos := 'x' (monWARight - monWAwidth/2 - gW/2) ' y' monWATop + (monWAheight/2 - gH/2)
+                else
+                    gPos := 'x' (monWARight - monWAwidth/2 - gW/2) ' y' minMaxPosY + this.padH
+            }
+        }
+
+        switch g.pos, 'off' {    
+            case 'br', 'bc', 'bl': (minMaxPosY < (monWATop + gH + this.padH)) ? outOfWorkArea := true : ''       
+            case 'tr', 'tc', 'tl', 'ct': (minMaxPosY > (monWABottom - gH - this.padH)) ? outOfWorkArea := true : ''           
+        }
+
+        if m['dur']
+            SetTimer(g.boundFuncTimer, -((m['dur'] + (IsSet(outOfWorkArea) ? 8 : 0)) * 1000 + m['showDur']))
+
+        ;==============================================    
+        
+        this.mNotifyGUIs[gIndex] := g
+        
+        switch m['style'], 'off' {
+            case 'round': this.FrameShadow(g.hwnd)
+            case 'edge': m['bdr'] ? g.Opt('+Border'): ''
+        }
+                                     
+        if m['wstp']
+            WinSetTransparent(m['wstp'], g)
+
+        if m['wstc']
+            WinSetTransColor(m['wstc'], g)
+
+        if m['showHex']
+            g.Show(gPos ' NoActivate Hide'), DllCall('AnimateWindow', 'Ptr', g.hwnd, 'Int', m['showDur'], 'Int', m['showHex'])  
+        else
+            g.Show(gPos ' NoActivate')
+            
+        return m
+    }
+
+    ;============================================================================================
+
+    static gDestroy(g, fromMethod:='', *)
+    {
+        SetTimer(g.boundFuncTimer, 0)
+
+        if g.hideHex && !RegExMatch(fromMethod, '^(Destroy|close)')
+            DllCall('AnimateWindow', 'Ptr', g.hwnd, 'Int', g.hideDur, 'Int', Format("{:#X}", g.hideHex + 0x10000))
+     
+        g.Destroy()
+
+        if this.mNotifyGUIs.Has(g.gIndex)
+            this.mNotifyGUIs.Delete(g.gIndex) 
+
+        ;==============================================
+        
+        Sleep(10)        
+        aGUIs := Array()
+        mDhwTmm := this.Set_DHWindows_TMMode(0, 'RegEx')
+
+        for id in WinGetList('i)^NotifyGUI_' g.mon '_' g.pos ' ahk_class AutoHotkeyGUI') {            
+            try {
+                WinGetPos(, &gY,, &gH, 'ahk_id ' id)
+                RegExMatch(WinGetTitle('ahk_id ' id), 'i)^NotifyGUI_\d+_[a-z]+_(\d+)', &match)           
+                aGUIs.Push(Map('gY', gY, 'gH', gH, 'id', id, 'padY', match[1]))
+            } catch {
+                aGUIs := Array()
+                break
+            }
+        }
+        
+        this.Set_DHWindows_TMMode(mDhwTmm['dhwPrev'], mDhwTmm['tmmPrev'])
+        
+        if (aGUIs.Length) {
+            MonitorGetWorkArea(g.mon,, &monWATop,, &monWABottom)
+            monWAheight := Abs(monWABottom - monWATop)
+            SetWinDelay(0)
+            
+            switch g.pos, 'off' {
+                case 'br', 'bc', 'bl': aGUIs := this.SortArrayGUIPosY(aGUIs, true),  posY := monWABottom - aGUIs[1]['padY']               
+                case 'tr', 'tc', 'tl', 'ct': aGUIs := this.SortArrayGUIPosY(aGUIs),  posY := monWATop + aGUIs[1]['padY']
+            }           
+            
+            for _, value in aGUIs {
+                switch g.pos, 'off'{
+                    case 'br', 'bc', 'bl': posY -= value['gH']        
+                    case 'ct': (A_Index = 1 ? posY := monWATop + monWAheight/2 - value['gH']/2 : '') 
+                }                    
+                
+                if (Abs(posY - value['gY']) > 10) {
+                    try WinMove(, posY,,, 'ahk_id ' value['id'])
+                    catch
+                        break
+                }
+
+                switch g.pos, 'off' {    
+                    case 'br', 'bc', 'bl': posY -= this.padH        
+                    case 'tr', 'tc', 'tl', 'ct': posY += value['gH'] + this.padH 
+                } 
+            }
+        }
+    }
+
+    ;============================================================================================
+
+    static Exist(tag)
+    {
+        mDhwTmm := this.Set_DHWindows_TMMode(0, 'RegEx')
+
+        for id in WinGetList('i)^NotifyGUI_\d+_[a-z]+_\d+_\Q' tag '\E$ ahk_class AutoHotkeyGUI') {
+            idFound := id
+            break
+        }
+
+        this.Set_DHWindows_TMMode(mDhwTmm['dhwPrev'], mDhwTmm['tmmPrev'])
+
+        if IsSet(idFound)
+            return idFound
+        
+        return 0
+    }       
+
+    ;============================================================================================
+
+    static Destroy(str)
+    {
+        mDhwTmm := this.Set_DHWindows_TMMode(0, A_TitleMatchMode)        
+        SetWinDelay(25)
+     
+        if (WinExist('ahk_id ' str)) {
+            for gIndex, value in this.mNotifyGUIs.Clone() {
+                if (str = value.handle && this.mNotifyGUIs.Has(gIndex)) {
+                    this.gDestroy(this.mNotifyGUIs[gIndex], 'Destroy')   
+                    break  
+                }
+            }                    
+
+            SetTitleMatchMode(1)     
+            for id in WinGetList('NotifyGUI_ ahk_class AutoHotkeyGUI') {
+                if (str = id) { 
+                    try WinClose('ahk_id ' id)
+                    break
+                }
+            }              
+        }         
+        
+        for gIndex, value in this.mNotifyGUIs.Clone()
+            if str = value.tag && this.mNotifyGUIs.Has(gIndex)
+                this.gDestroy(this.mNotifyGUIs[gIndex], 'Destroy')   
+
+        SetTitleMatchMode('RegEx')                                   
+        for id in WinGetList('i)^NotifyGUI_\d+_[a-z]+_\d+_\Q' str '\E$ ahk_class AutoHotkeyGUI')                                                              
+            try WinClose('ahk_id ' id)  
+        
+        this.Set_DHWindows_TMMode(mDhwTmm['dhwPrev'], mDhwTmm['tmmPrev'])                             
+    }
+
+    ;============================================================================================
+
+    static DestroyAllOnMonitorAtPosition(monNum, position)
+    {                                    
+        for gIndex, value in this.mNotifyGUIs.Clone()
+            if value.mon = monNum && value.pos = position && this.mNotifyGUIs.Has(gIndex)
+                this.gDestroy(this.mNotifyGUIs[gIndex], 'DestroyAllOnMonitorAtPosition')  
+        
+        this.WinGetList_WinClose('i)^NotifyGUI_' monNum '_' position ' ahk_class AutoHotkeyGUI', 0, 'RegEx')    
+    }
+
+    ;============================================================================================
+
+    static DestroyAllOnAllMonitorAtPosition(position) 
+    {
+        for gIndex, value in this.mNotifyGUIs.Clone()
+            if value.pos = position && this.mNotifyGUIs.Has(gIndex) 
+                this.gDestroy(this.mNotifyGUIs[gIndex], 'DestroyAllOnAllMonitorAtPosition')
+
+        this.WinGetList_WinClose('i)^NotifyGUI_\d+_' position ' ahk_class AutoHotkeyGUI', 0, 'RegEx')
+    }    
+
+    ;============================================================================================    
+
+    static DestroyAllOnMonitor(monNum)
+    {             
+        for gIndex, value in this.mNotifyGUIs.Clone()
+            if value.mon = monNum && this.mNotifyGUIs.Has(gIndex)
+                this.gDestroy(this.mNotifyGUIs[gIndex], 'DestroyAllOnMonitor') 
+        
+        this.WinGetList_WinClose('NotifyGUI_' monNum ' ahk_class AutoHotkeyGUI', 0, 1)                      
+    } 
+
+    ;============================================================================================
+
+    static DestroyAll()
+    {           
+        for gIndex, value in this.mNotifyGUIs.Clone()                              
+            if this.mNotifyGUIs.Has(gIndex)
+                this.gDestroy(this.mNotifyGUIs[gIndex], 'DestroyAll')
+        
+        this.WinGetList_WinClose('NotifyGUI_ ahk_class AutoHotkeyGUI', 0, 1)                           
+    } 
+
+    ;============================================================================================
+
+    static WinGetList_WinClose(winTtile, dhWindows, tmMode)
+    {
+        mDhwTmm := this.Set_DHWindows_TMMode(dhWindows, tmMode)
+        SetWinDelay(25)
+        
+        for id in WinGetList(winTtile)
+            try WinClose('ahk_id ' id)
+
+        this.Set_DHWindows_TMMode(mDhwTmm['dhwPrev'], mDhwTmm['tmmPrev'])        
+    }    
+
+    ;============================================================================================
+
+    static Set_DHWindows_TMMode(dhw, tmm)
+    {
+        dhwPrev := A_DetectHiddenWindows
+        tmmPrev := A_TitleMatchMode
+        DetectHiddenWindows(dhw)
+        SetTitleMatchMode(tmm) 
+        return Map('dhwPrev', dhwPrev, 'tmmPrev', tmmPrev)
+    }    
+
+    ;============================================================================================
+
+    static Sound(sound)
+    {
+        if RegExMatch(sound, 'i)^(soundx|soundi)$') || this.mSounds.Has(sound)
+            sound := this.mSounds[sound]
+
+        if FileExist(sound) || RegExMatch(sound,'^\*\-?\d+')
+            Soundplay(sound)
+    }
+
+    ;============================================================================================
+
+    static SoundsList()
+    {
+        static gHwnd := 0
+
+        if WinExist('ahk_id ' gHwnd)
+            return     
+
+        this.gSnd := Gui(, 'Notify - Sounds list')
+        gHwnd := this.gSnd.hwnd
+        this.gSnd.MarginY := 15
+        this.gSnd.OnEvent('Close', (*) => this.gSnd.Destroy())
+        this.gSnd.ddl := this.gSnd.Add('DropDownList', 'w260 Choose1', this.aSounds)
+        this.gSnd.ddl.OnEvent('Change', this.gSnd_ddl_CtrlChange.Bind(this))
+        this.gSnd.btn := this.gSnd.Add('Button',, 'Save to Clipboard')
+        this.gSnd.btn.OnEvent('Click', this.gSnd_SaveToClipboard.Bind(this))
+        this.gSnd.Show()
+    }   
+
+    ;============================================================================================
+
+    static gSnd_SaveToClipboard(*) 
+    {
+        this.Destroy('SaveToClipboard')
+        A_Clipboard := ''
+        A_Clipboard := this.gSnd.ddl.Text
+
+        if ClipWait(1)
+            this._Show('"' A_Clipboard '"', 'Saved to clipboard.', 'iconi',,, 'pos=bc dur=5 tag=SaveToClipboard')
+        else
+            this._Show('Error', 'Save to clipboard failed.', 'iconx', 'soundx',, 'pos=bc dur=5 tag=SaveToClipboard')
+    }
+
+    ;============================================================================================
+
+    static gSnd_ddl_CtrlChange(*) => SetTimer( this.Sound.Bind(this, this.gSnd.ddl.Text) , -1)   
+
+    ;============================================================================================ 
+    ; DisplayCheck by the-Automator  https://www.the-automator.com/downloads/maestrith-notify-class-v2/
+    static MonitorGetInfo()
+    {
+        static gHwnd := 0
+
+        if WinExist('ahk_id ' gHwnd)
+            return
+
+        monCount := MonitorGetCount()
+        monPrimary := MonitorGetPrimary()
+        gHwnd := this._Show('Monitor Info', 'Monitor Count: ' monCount '`nPrimary Monitor: ' monPrimary '`nClick here to close all Monitor Info GUIs.',,,
+        (*) => this.Destroy('MonitorInfo'), 
+        'dur=0 pos=ct mali=center tali=center tfo=underline italic tc=00FF46 mc=00FF46 style=edge show=expand@125 tag=MonitorInfo')['hwnd']
+
+        Loop monCount {
+            MonitorGet(A_Index, &monLeft, &monTop, &monRight, &monBottom)
+            MonitorGetWorkArea(A_Index, &monWALeft, &monWATop, &monWARight, &monWABottom)
+            this._Show(
+                'Monitor #' A_Index, 
+                (
+                'Left:`t' monLeft ' (WorkArea: ' monWALeft ')
+                Top:`t' monTop ' (WorkArea: ' monWATop ')
+                Right:`t' monRight ' (WorkArea: ' monWARight ')
+                Bottom:`t' monBottom ' (WorkArea: ' monWABottom ')'
+                ),,,, 'dur=0 mon=' A_Index ' pos=ct tali=center tag=MonitorInfo'   
+            )                  
+        }
+    }
+
+    ;============================================================================================
+
+    static ControlGetTextWidth(str:='', font:='', fontSize:='', monWALeft:='', monWATop:='')
+    {
+        g := Gui()
+        g.SetFont('s' fontSize, font)
+        g.txt := g.Add('Text',, str)
+        g.Show('x' monWALeft ' y' monWATop ' Hide')
+        g.txt.GetPos(,, &ctrlWidth)
+        g.Destroy()
+        return ctrlWidth
+    }      
+
+    ;============================================================================================
+
+    static ControlGetPicWidth(picCtrl, monWALeft:='', monWATop:='')
+    {
+        g := Gui()
+        g.pic := picCtrl
+        g.Show('x' monWALeft ' y' monWATop ' Hide')
+        g.pic.GetPos(,, &ctrlWidth)
+        g.Destroy()
+        return ctrlWidth
+    }   
+    
+    ;============================================================================================
+
+    static SortArrayGUIPosY(arr, sortReverse := false)
+    {
+        for _, value in arr
+            listValueY .= value['gY'] ','
+
+        listSortValueY := Sort(RTrim(listValueY, ','), (sortReverse ? 'RN' : 'N') ' D,')
+        sortArray := Array()
+
+        for index, value in StrSplit(listSortValueY, ',')
+            for _, v in arr
+                if v['gY'] = value
+                    sortArray.Push(v)
+            
+        return sortArray    
+    }    
+  
+    ;============================================================================================
+    ; FrameShadow by Klark92.  https://www.autohotkey.com/boards/viewtopic.php?f=6&t=29117&hilit=FrameShadow
+    static FrameShadow(hwnd)
+    {
+        DllCall("dwmapi.dll\DwmIsCompositionEnabled", "int*", &dwmEnabled:=0)
+        
+        if !dwmEnabled {
+            DllCall("user32.dll\SetClassLongPtr", "ptr", hwnd, "int", -26, "ptr", DllCall("user32.dll\GetClassLongPtr", "ptr", hwnd, "int", -26) | 0x20000)
+        }
+        else {
+            margins := Buffer(16, 0)    
+            NumPut("int", 1, "int", 1, "int", 1, "int", 1, margins)
+            DllCall("dwmapi.dll\DwmSetWindowAttribute", "ptr", hwnd, "Int", 2, "Int*", 2, "Int", 4)
+            DllCall("dwmapi.dll\DwmExtendFrameIntoClientArea", "ptr", hwnd, "ptr", margins)
+        }
+    }   
+    ;============================================================================================              
+}
+
+onRecv(sock)
+{
+	size := sock.RecvFrom(&buf,,,,&addrFrom)
+	msgrecive := StrGet(buf, size, Encoding:="UTF-8")
+	if (msgrecive = "RequestData")
+	{
+		global DataSesion
+		if DataSesion != ""
+		{
+			global UserNameAccount
+			global TimeAccount
+			global StartTime
+			global sockserver
+			
+			IPfrom := DllCall( "Ws2_32.dll\inet_ntoa","UInt",NumGet(addrFrom,4,"UInt"), "AStr" ) 
+			Portfrom := DllCall("ws2_32\htons", "UShort", NumGet(addrFrom, 2, "UShort"), "UShort")
+			
+			msgtosend := UserNameAccount ";" TimeAccount ";" StartTime
+			respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
+			respsize := StrPut(msgtosend, respbuf, Encoding)
+			sockserver.SendTo(respbuf, respsize, [IPfrom, Portfrom])
+		}
+	}
+	else
+	{
+		try
+		{
+			msgrecivearray := StrSplit(msgrecive, ";")
+			global UserNameAccount := msgrecivearray[1]
+			global TimeAccount := msgrecivearray[2]
+			global StartTime := msgrecivearray[3]
+		}
+	}
+
+}
+
