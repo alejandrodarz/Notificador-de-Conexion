@@ -11,11 +11,11 @@ SetTitleMatchMode 2
 SetControlDelay -1
 SetMouseDelay -1
 ; <for compiled scripts>
-;@Ahk2Exe-SetFileVersion 1.6.0
+;@Ahk2Exe-SetFileVersion 2.0.0
 ;@Ahk2Exe-SetDescription Notificador de Conexión
 ; </for compiled scripts>
 
-global Version := "v1.6.0"
+global Version := "v2.0.0"
 global WinAutoRunVerify := true
 global IniciarConWindows := 0
 global DarkMode := 0
@@ -727,6 +727,7 @@ LangCreate(*)
 }
 
 
+
 if (LenguajeText = "")
 {
 	PredLang := ""
@@ -1424,34 +1425,36 @@ WM_MOUSEMOVE( wparam, lparam, msg, hwnd )
 		
 }
 
+OnMessage(0x404, AHK_NOTIFYICON1)
+
+AHK_NOTIFYICON1(wParam, lParam, *) 
+{
+if (lParam = 0x203) { 
+		MenuHandler(LenguajeList.BarraMenu["Configuracion"], 7, A_TrayMenu)
+    }
+}
+
 OnMessage(0x404, AHK_NOTIFYICON)
 
 AHK_NOTIFYICON(wParam, lParam, *) 
 {
-	if (lParam = 0x203) { 
-		MenuHandler(LenguajeList.BarraMenu["Configuracion"], 7, A_TrayMenu)
-    }
-	else if (lParam = 0x200) {
+	if (lParam = 0x200) {
 		if (A_IconNumber != 1 and A_IconNumber != 2 and A_IconNumber != 3)
 		{
 			CoordMode "Mouse", "Screen"
 			MouseGetPos &OutputVarX, &OutputVarY
 			
-			global IniFileReadTime
 
 			ToolTip1 := 0
 			ToolTip2 := 0
 			
-			if !IniFileReadTime
-			{
-				global UserNameAccount
-				global TimeAccount
-				global StartTime
-				
-				if (StartTime != 0)
-					ToolTip1 := 1
-			}
+			global UserNameAccount
+			global TimeAccount
+			global StartTime
 			
+			if (StartTime != 0)
+				ToolTip1 := 1
+
 			global Temporizador
 			global TemporizadorNotiTooltip
 			if Temporizador and TemporizadorNotiTooltip
@@ -1484,23 +1487,15 @@ AHK_NOTIFYICON(wParam, lParam, *)
 			{
 				if ToolTip1
 				{
+				
 					ElapsedTime := (A_TickCount - StartTime)//1000
-					StartTime := A_TickCount
-					
-					if !IsInteger(TimeAccount)
-					{
-						TimeAccount := StrSplit(TimeAccount, ":")
-						TimeAccount := TimeAccount[1] * 3600 + TimeAccount[2] * 60 + TimeAccount[3]
-					}
-					
-					TimeAccount := FormatSeconds(TimeAccount - ElapsedTime)
-					
+
 					if InStr(A_IconTip, LenguajeList.Mensajes["IconTip5"])
 					{
-						A_IconTipnew := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount  "`n" LenguajeList.Mensajes["IconTip3"] " " TimeAccount
+						A_IconTipnew := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount  "`n" LenguajeList.Mensajes["IconTip3"] " " FormatSeconds(TimeAccount - ElapsedTime)
 					}
 					else
-						A_IconTipnew := LenguajeList.Mensajes["IconTip7"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " TimeAccount
+						A_IconTipnew := LenguajeList.Mensajes["IconTip7"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount  "`n" LenguajeList.Mensajes["IconTip3"] " " FormatSeconds(TimeAccount - ElapsedTime)
 					
 					if (A_IconTip != A_IconTipnew)
 						A_IconTip := A_IconTipnew
@@ -1699,8 +1694,6 @@ Settings(*)
 
 	
 	MyGui := Gui()
-	
-	MyGui.Opt("-DPIScale")
 	
 	if DarkMode
 	{
@@ -3281,7 +3274,7 @@ Settings(*)
 	
 	MyLV.Opt("-Multi")
 	
-	ImageListID := DllCall("comctl32.dll\ImageList_Create", "int", 75, "int", 75, "uint", 0x20, "int", 255, "int", 10)
+	ImageListID := DllCall("comctl32.dll\ImageList_Create", "int", 58, "int", 58, "uint", 0x20, "int", 255, "int", 10)
 	MyLV.SetImageList(ImageListID, 0)
 	
 	Loop Files, A_WorkingDir "\Gifs\*.gif"
@@ -3481,7 +3474,6 @@ Settings(*)
 	
 	SetDarkMode(MyGui)
 
-	MyGui.Opt("-DPIScale")
 	MyGui.Show("Center")
 
 	
@@ -4674,8 +4666,13 @@ VerefyConx()
 						if (w != EditDesconectado)
 						{
 							if (w = EditConectado)
-							{ 
-								if (A_IconNumber != 5 and A_IconNumber != 6 and A_IconNumber != 7 and A_IconNumber != 8 and A_IconNumber != 9 and A_IconNumber != 10)
+								ConectStatus := 1
+							else
+								ConectStatus := 0
+								
+							if ((ConectStatus and A_IconNumber != 5 and A_IconNumber != 6 and A_IconNumber != 7 and A_IconNumber != 8 and A_IconNumber != 9 and A_IconNumber != 10) or (!ConectStatus and A_IconNumber != 4 and A_IconNumber != 11 and A_IconNumber != 12 and A_IconNumber != 13 and A_IconNumber != 14 and A_IconNumber != 15))
+							{
+								If ConectStatus
 								{
 									try
 										TraySetIcon("Icons.dll", 5) ;8
@@ -4683,119 +4680,184 @@ VerefyConx()
 									A_TrayMenu.Enable(LenguajeList.BarraMenu["BuscarActualizacion"])
 										
 									A_IconTip := LenguajeList.Mensajes["IconTip5"]
+								}
+								else
+								{
+									try
+										TraySetIcon("Icons.dll", 4) ;9
 										
-		
-									if !IniFileReadTime
-									{	
-										if (DataSesion = "")
-											DataSesion := IniRead("options.ini", "settings", "DataSesion")	
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["BuscarActualizacion"])
+									
+									A_IconTip := LenguajeList.Mensajes["IconTip6"]
+								}
+								
+								A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])
+								
+								if !IniFileReadTime
+								{	
+									if (DataSesion = "")
+										DataSesion := IniRead("options.ini", "settings", "DataSesion")	
+									
+									if (DataSesion != "")
+									{
+										IpResolveEtecsa := "Failed"
+										IpResolveEtecsa := ResolveHostname("secure.etecsa.net")
 										
-										if (DataSesion != "")
-										{
-											IpResolveEtecsa := "Failed"
-											IpResolveEtecsa := ResolveHostname("secure.etecsa.net")
-											
-											if(IpResolveEtecsa != "Failed")
-											{	
-												DataEnv := IpResolveEtecsa " " VerificarPingCada " " VerificarConx
-							
-												if !ProcessExist("PingHostName.exe")
+										if(IpResolveEtecsa != "Failed")
+										{	
+											DataEnv := IpResolveEtecsa " " VerificarPingCada " " VerificarConx
+
+											if !ProcessExist("PingHostName.exe")
+											{
+												try
 												{
-													try
-													{
-														Run "PingHostName.exe"
-														Prev_DetectHiddenWindows := A_DetectHiddenWindows
-														DetectHiddenWindows True
-														timestart := A_TickCount
-														while (!WinExist("ahk_exe PingHostName.exe") and (A_TickCount - timestart) < 5000)
-															sleep(10)
-														
-														DetectHiddenWindows Prev_DetectHiddenWindows  ; Restore original setting for the caller.
-													}
-													catch
-														exitapp
-												}
-														
-												if !ProcessExist("PingHostName.exe")
-													exitapp
+													Run "PingHostName.exe"
+													Prev_DetectHiddenWindows := A_DetectHiddenWindows
+													DetectHiddenWindows True
+													timestart := A_TickCount
+													while (!WinExist("ahk_exe PingHostName.exe") and (A_TickCount - timestart) < 5000)
+														sleep(10)
 													
+													DetectHiddenWindows Prev_DetectHiddenWindows  ; Restore original setting for the caller.
+												}
+												catch
+													exitapp
+											}
+													
+											if !ProcessExist("PingHostName.exe")
+												exitapp
+												
+											PingEtecsa := 0
+
+											try
+												PingEtecsa := Send_WM_COPYDATA(DataEnv, "ahk_exe PingHostName.exe")
+												
+											if (PingEtecsa != 0 and PingEtecsa != 1)
 												PingEtecsa := 0
 
+											If PingEtecsa
+											{
 												try
-													PingEtecsa := Send_WM_COPYDATA(DataEnv, "ahk_exe PingHostName.exe")
-													
-												if (PingEtecsa != 0 and PingEtecsa != 1)
-													PingEtecsa := 0
-
-												If PingEtecsa
 												{
-													try
+													requestdata := "op=getLeftTime&" DataSesion
+													whr := ComObject("WinHttp.WinHttpRequest.5.1")
+													whr.Open("POST", "https://secure.etecsa.net:8443/EtecsaQueryServlet")
+													whr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+													whr.Send(requestdata)
+													
+													if (whr.ResponseText = "errorop")
 													{
-														requestdata := "op=getLeftTime&" DataSesion
-														whr := ComObject("WinHttp.WinHttpRequest.5.1")
-														whr.Open("POST", "https://secure.etecsa.net:8443/EtecsaQueryServlet")
-														whr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-														whr.Send(requestdata)
-														
-														if (whr.ResponseText = "errorop")
-														{
-															DataSesion := ""
-															IniWrite DataSesion, "options.ini", "settings", "DataSesion"
-															StartTime := 0
-														}
-														else
-														{
+														DataSesion := ""
+														IniWrite DataSesion, "options.ini", "settings", "DataSesion"
+														StartTime := 0
+													}
+													else
+													{
+														If ConectStatus
 															A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
-															
-															StartTime := A_TickCount
-															
-															aTime := StrSplit(whr.ResponseText, ":")
-															TimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
-															
-															if TimeRed
-															{
-																global sockserver
-																global ServerOnPort
-																msgtosend := UserNameAccount ";" TimeAccount ";" StartTime
-																respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
-																respsize := StrPut(msgtosend, respbuf, Encoding)
-																sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
-															}
+														else
+															A_IconTip := LenguajeList.Mensajes["IconTip6"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
+														
+														StartTime := A_TickCount
+														
+														aTime := StrSplit(whr.ResponseText, ":")
+														TimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
+														
+														if TimeRed
+														{
+															global sockserver
+															global ServerOnPort
+															msgtosend := UserNameAccount ";" TimeAccount ";" StartTime
+															respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
+															respsize := StrPut(msgtosend, respbuf, Encoding)
+															sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
 														}
 													}
 												}
 											}
 										}
-										else
-											StartTime := 0
-									}
-									
-									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])		
-									
-									if WebOffAccount
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
-									else if (DataSesion = "")
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
-									else
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
-										
-									
-									if !Temporizador
-									{
-										if (TemporizadorH = 0 and TemporizadorM = 0 and TemporizadorS = 0)
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-										else
-											A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
 									}
 									else
+										StartTime := 0
+								} 
+								else
+								{
+									;ftp://invitado:invitado@192.168.20.1/InternetAccount.ini
+									try
+										Download EditIniFileReadTime, "InternetAccount.ini"
+									
+									try
 									{
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
-									}
+										if FileExist("InternetAccount.ini")
+										{
+											UserNameAccount := IniRead("InternetAccount.ini", "Info", "Cuenta")
+											Saldo := IniRead("InternetAccount.ini", "Info", "Saldo")
+											Factor := IniRead("InternetAccount.ini", "Info", "FactorHoras")
+											TimeIs := IniRead("InternetAccount.ini", "Info", "Hora")
+											Tiempo := Integer((Saldo/Factor)*3600)
+
+											if (TimeIs != "0")
+											{	
+												aTime := StrSplit(TimeIs, ":")
+												aTimeTimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
+												aTimeTimeAccount1 := A_Hour * 3600 + A_Min * 60 + A_Sec
+												StartTime := A_TickCount
+												
+												RestSec := aTimeTimeAccount1 - aTimeTimeAccount
+
+												Tiempo := (Tiempo - RestSec)
+												
+												TimeAccount := Tiempo 
+
+												if TimeRed
+												{
+													global sockserver
+													global ServerOnPort
+													msgtosend := UserNameAccount ";" TimeAccount ";" StartTime
+													respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
+													respsize := StrPut(msgtosend, respbuf, Encoding)
+													sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
+												}
+											}
 											
+											
+											Horas := Tiempo//3600 ":" FormatTime(DateAdd(19990101, Tiempo, "Seconds"), "mm:ss")
+											If ConectStatus
+												A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " Horas
+											else
+												A_IconTip := LenguajeList.Mensajes["IconTip6"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " Horas
+														
+											FileDelete "InternetAccount.ini"
+										}
+									}
+								}
+								
+
+								if WebOffAccount
+									A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
+								else if (DataSesion = "")
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
+								else
+									A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
+									
+								
+								if !Temporizador
+								{
+									if (TemporizadorH = 0 and TemporizadorM = 0 and TemporizadorS = 0)
+										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+									else
+										A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
+								}
+								else
+								{
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+									A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
+								}
 										
 									
+								If ConectStatus
+								{
 									if AbrirWebAlConectarse
 									{
 										if (WebAlConectarse != "")
@@ -4819,35 +4881,39 @@ VerefyConx()
 												Run WebPageVisit	
 										}
 									}
-									
-								
-									
-									if IniFileReadTime
+								} 
+								else
+								{
+									if AbrirWebAlDesconocer
 									{
-										;ftp://invitado:invitado@192.168.20.1/InternetAccount.ini
-										try
-											Download EditIniFileReadTime, "InternetAccount.ini"
-										
-										try
+										if (WebAlDesconocer != "")
 										{
-											if FileExist("InternetAccount.ini")
+											WebVerify := StrSplit(WebAlDesconocer, [":", "."])
+											if (WebVerify[1] == "https" or WebVerify[1] == "http" or WebVerify[1] == "www")
+												WebPageVisit := WebAlDesconocer
+											else
+												WebPageVisit := "https://" WebAlDesconocer
+												
+											if WebOption
 											{
-												Account := IniRead("InternetAccount.ini", "Info", "Cuenta")
-												Saldo := IniRead("InternetAccount.ini", "Info", "Saldo")
-												Factor := IniRead("InternetAccount.ini", "Info", "FactorHoras")
-												Tiempo := Integer((Saldo/Factor)*3600)
-												Horas := Tiempo//3600 ":" FormatTime(DateAdd(19990101, Tiempo, "Seconds"), "mm:ss")
-												
-												A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " Account "`n" LenguajeList.Mensajes["IconTip3"] " " Horas
-												
-												FileDelete "InternetAccount.ini"
+												if (!IsSet(WebAlreadyAlDesconocer) or !WinExist(WebAlreadyAlDesconocer))
+												{
+													Run WebPageVisit,,,&OutputVarPID
+													ProcessName := ProcessGetName(OutputVarPID)
+													WebAlreadyAlDesconocer := ProcessName
+												}
 											}
+											else
+												Run WebPageVisit	
 										}
 									}
-		
-									if NotiConectado
-										TrayTip A_IconTip,, "Mute"
-										
+								}
+
+								if ((NotiConectado and ConectStatus) or (NotiNacional and !ConectStatus))
+									TrayTip A_IconTip,, "Mute"
+								
+								if ConectStatus
+								{
 									if (SoundConectado != "none")
 									{
 										soundtoplayretraso := SoundToPlay.Bind(SoundConectado)
@@ -4875,242 +4941,9 @@ VerefyConx()
 										PlayGiftAction(GifSelectedText1, EfectoEntradaGif1, PosVGif1, UpDownEfectoEntradaGif1, UpDownTiempoEntradaGif1, EfectoSalidaGif1, UpDownEfectoSalidaGif1, BarradeTareasGif1)
 									}
 								}
-								
-								if Temporizador
+								else
 								{
-									if (!isset(SecondsTemp) or SecondsTemp = 0)
-									{
-										SecondsTemp := TemporizadorH * 3600 + TemporizadorM * 60 + TemporizadorS
-										if (SecondsTemp = 0)
-										{
-											Temporizador := 0
-											if NotiNormal
-												Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip8"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-										}
-										else
-										{
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-											A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
-											StartTimeTemp := A_TickCount
-										}
-									}
-									else
-									{
-										ElapsedTimeTemp := (A_TickCount - StartTimeTemp)//1000
-									
-										if TemporizadorNotiWindows
-										{
-											if (!isset(NotificationTemp) or NotificationTemp = 0)
-											{
-												TrayTip FormatSeconds(SecondsTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-												NotificationTemp := 1
-											}
-											else 
-											{
-												DivisionPartTemp := (SecondsTemp//4)
-
-												if (DivisionPartTemp != 0)
-												{
-													if (NotificationTemp != 4 and NotificationTemp != 5)
-													{
-														if (ElapsedTimeTemp >= ((NotificationTemp * DivisionPartTemp)))
-														{
-															TrayTip FormatSeconds(SecondsTemp-ElapsedTimeTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-															NotificationTemp += 1
-														}
-													}
-													else if (NotificationTemp = 4)
-													{
-														DivisionPartTempFinal := DivisionPartTemp//3
-														if (ElapsedTimeTemp >= (((NotificationTemp-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
-														{
-															TrayTip LenguajeList.Mensajes["TrayTip9"] "`n" FormatSeconds(SecondsTemp-ElapsedTimeTemp), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-															NotificationTemp += 1
-														}
-													}
-													else if (NotificationTemp = 5)
-													{
-														if (ElapsedTimeTemp >= SecondsTemp)
-														{
-															TrayTip LenguajeList.Mensajes["TrayTip10"] "`n" FormatSeconds(0), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-															
-															NotificationTemp := 0
-														}
-													}
-												}
-												else
-												{	
-													if NotiNormal
-														Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip11"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-													
-													TemporizadorNotiWindows := 0
-													NotificationTemp :=0
-												}
-											}
-										}
-										
-										if TemporizadorNotiIcon
-										{
-											if (!isset(NotificationTempIcon) or NotificationTempIcon = 0 )
-											{
-												NotificationTempIcon :=1
-											}
-											
-											if !isset(DivisionPartTemp)
-												DivisionPartTemp := (SecondsTemp//4)
-												
-											if (DivisionPartTemp != 0)
-											{
-												if (NotificationTempIcon != 4 and NotificationTempIcon != 5)
-												{
-													if (ElapsedTimeTemp >= ((NotificationTempIcon * DivisionPartTemp)))
-													{
-														NotificationTempIcon +=1
-														try
-															TraySetIcon("Icons.dll", (5+NotificationTempIcon))
-														
-													}
-												}
-												else if (NotificationTempIcon = 4)
-												{
-													if !isset(DivisionPartTempFinal)
-														DivisionPartTempFinal := DivisionPartTemp//3
-													if (ElapsedTimeTemp >= (((NotificationTempIcon-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
-													{
-														NotificationTempIcon +=1
-														try
-															TraySetIcon("Icons.dll", (5+NotificationTempIcon))
-														
-													}
-												}
-												else if (NotificationTempIcon = 5)
-												{
-													if (ElapsedTimeTemp >= SecondsTemp)
-													{
-														NotificationTempIcon :=0
-														try
-															TraySetIcon("Icons.dll", 5)
-														
-													}
-												}
-											}
-											else
-											{
-												if NotiNormal
-													Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip12"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-													
-												TemporizadorNotiIcon := 0
-												NotificationTempIcon :=0
-											}
-										}
-										
-										
-										if (ElapsedTimeTemp >= SecondsTemp)
-										{
-											SecondsTemp := 0
-											Temporizador := 0
-											
-											if TemporizadorNotiWindows
-											{
-												if (NotificationTemp = 5)
-												{
-													TrayTip LenguajeList.Mensajes["TrayTip10"] FormatSeconds(0),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-													NotificationTemp :=0
-												}
-											}
-											
-											if (NotificationTempIcon = 5)
-											{
-												try
-													TraySetIcon("Icons.dll", 5)
-												NotificationTempIcon :=0
-											}
-											
-											global AIconTipold
-											A_IconTip := AIconTipold
-											
-											MenuHandler(LenguajeList.BarraMenu["QuitarCuenta"], 4, A_TrayMenu)
-											A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-										}
-									}
-									
-									
-								}
-
-								break
-							} 
-							else 
-							{
-								if (A_IconNumber != 4 and A_IconNumber != 11 and A_IconNumber != 12 and A_IconNumber != 13 and A_IconNumber != 14 and A_IconNumber != 15)
-								{
-									try
-										TraySetIcon("Icons.dll", 4) ;9
-										
-									A_TrayMenu.Disable(LenguajeList.BarraMenu["BuscarActualizacion"])
-									
-									A_IconTip := LenguajeList.Mensajes["IconTip6"]
-	
-									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])		
-									
-									if (DataSesion = "")
-										DataSesion := IniRead("options.ini", "settings", "DataSesion")		
-	
-									if WebOffAccount
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
-									else if (DataSesion = "")
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
-									else
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
-
-									
-									if !Temporizador
-									{
-										if (TemporizadorH = 0 and TemporizadorM = 0 and TemporizadorS = 0)
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-										else
-											A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-									}
-									else
-									{
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
-									}
-																		
-									if AbrirWebAlDesconocer
-									{										
-										if (WebAlDesconocer != "")
-										{
-											WebVerify := StrSplit(WebAlDesconocer, [":", "."])
-											if (WebVerify[1] == "https" or WebVerify[1] == "http" or WebVerify[1] == "www")
-												WebPageVisit := WebAlDesconocer
-											else
-												WebPageVisit := "https://" WebAlDesconocer
-												
-											if WebOption
-											{
-												if (!IsSet(WebAlreadyAlDesconocer) or !WinExist(WebAlreadyAlDesconocer))
-												{
-													Run WebPageVisit,,,&OutputVarPID
-													ProcessName := ProcessGetName(OutputVarPID)
-													WebAlreadyAlDesconocer := ProcessName
-												}
-											}
-											else
-												Run WebPageVisit	
-										}
-									}
-
-									
-									if NotiNacional
-										TrayTip A_IconTip,, "Mute"
-										
-
-									if (SoundNacional != "none")
+								if (SoundNacional != "none")
 									{
 										soundtoplayretraso := SoundToPlay.Bind(SoundNacional)
 										global RetrasoNacional
@@ -5137,167 +4970,190 @@ VerefyConx()
 										PlayGiftAction(GifSelectedText2, EfectoEntradaGif2, PosVGif2, UpDownEfectoEntradaGif2, UpDownTiempoEntradaGif2, EfectoSalidaGif2, UpDownEfectoSalidaGif2, BarradeTareasGif2)
 									}
 								}
-								
-								if Temporizador
+							}
+
+
+							if Temporizador
+							{
+								if (!isset(SecondsTemp) or SecondsTemp = 0)
 								{
-									if (!isset(SecondsTemp) or SecondsTemp = 0)
+									SecondsTemp := TemporizadorH * 3600 + TemporizadorM * 60 + TemporizadorS
+									if (SecondsTemp = 0)
 									{
-										SecondsTemp := TemporizadorH * 3600 + TemporizadorM * 60 + TemporizadorS
-										if (SecondsTemp = 0)
-										{
-											Temporizador := 0
-											if NotiNormal
-												Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip8"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-											
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-										}
-										else
-										{
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-											A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
-											StartTimeTemp := A_TickCount
-										}
+										Temporizador := 0
+										if NotiNormal
+											Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip8"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+
+										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+										A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
 									}
 									else
 									{
-										ElapsedTimeTemp := (A_TickCount - StartTimeTemp)//1000
-									
-										if TemporizadorNotiWindows
+										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+										A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
+										StartTimeTemp := A_TickCount
+									}
+								}
+								else
+								{
+									ElapsedTimeTemp := (A_TickCount - StartTimeTemp)//1000
+								
+									if TemporizadorNotiWindows
+									{
+										if (!isset(NotificationTemp) or NotificationTemp = 0)
 										{
-											if (!isset(NotificationTemp) or NotificationTemp = 0)
-											{
-												TrayTip FormatSeconds(SecondsTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-												NotificationTemp :=1
-											}
-											else 
-											{
-												DivisionPartTemp := (SecondsTemp//4)
-
-												if (DivisionPartTemp != 0)
-												{
-													if (NotificationTemp != 4 and NotificationTemp != 5)
-													{
-														if (ElapsedTimeTemp >= ((NotificationTemp * DivisionPartTemp)))
-														{
-															TrayTip FormatSeconds(SecondsTemp-ElapsedTimeTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-															NotificationTemp +=1
-														}
-													}
-													else if (NotificationTemp = 4)
-													{
-														DivisionPartTempFinal := DivisionPartTemp//3
-														if (ElapsedTimeTemp >= (((NotificationTemp-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
-														{
-															TrayTip LenguajeList.Mensajes["TrayTip9"] "`n" FormatSeconds(SecondsTemp-ElapsedTimeTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-															NotificationTemp +=1
-														}
-													}
-													else if (NotificationTemp = 5)
-													{
-														if (ElapsedTimeTemp >= SecondsTemp)
-														{
-															TrayTip LenguajeList.Mensajes["TrayTip10"] "`n" FormatSeconds(0),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-															NotificationTemp :=0
-														}
-													}
-												}
-												else
-												{
-													if NotiNormal
-														Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip11"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-														
-													TemporizadorNotiWindows := 0
-													NotificationTemp :=0
-												}
-											}
+											TrayTip FormatSeconds(SecondsTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+											NotificationTemp := 1
 										}
-										
-										if TemporizadorNotiIcon
+										else 
 										{
-											if (!isset(NotificationTempIcon) or NotificationTempIcon = 0)
-											{
-												NotificationTempIcon :=1
-											}
-											
-											if !isset(DivisionPartTemp)
-												DivisionPartTemp := (SecondsTemp//4)
-												
+											DivisionPartTemp := (SecondsTemp//4)
+
 											if (DivisionPartTemp != 0)
 											{
-												if (NotificationTempIcon != 4 and NotificationTempIcon != 5)
+												if (NotificationTemp != 4 and NotificationTemp != 5)
 												{
-													if (ElapsedTimeTemp >= ((NotificationTempIcon * DivisionPartTemp)))
+													if (ElapsedTimeTemp >= ((NotificationTemp * DivisionPartTemp)))
 													{
-														NotificationTempIcon +=1
-														try
-															TraySetIcon("Icons.dll", (5+NotificationTempIcon))
-														
+														TrayTip FormatSeconds(SecondsTemp-ElapsedTimeTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+														NotificationTemp += 1
 													}
 												}
-												else if (NotificationTempIcon = 4)
+												else if (NotificationTemp = 4)
 												{
-													if !isset(DivisionPartTempFinal)
-														DivisionPartTempFinal := DivisionPartTemp//3
-													if (ElapsedTimeTemp >= (((NotificationTempIcon-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
+													DivisionPartTempFinal := DivisionPartTemp//3
+													if (ElapsedTimeTemp >= (((NotificationTemp-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
 													{
-														NotificationTempIcon +=1
-														try
-															TraySetIcon("Icons.dll", (5+NotificationTempIcon))
-														
+														TrayTip LenguajeList.Mensajes["TrayTip9"] "`n" FormatSeconds(SecondsTemp-ElapsedTimeTemp), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+														NotificationTemp += 1
 													}
 												}
-												else if (NotificationTempIcon = 5)
+												else if (NotificationTemp = 5)
 												{
 													if (ElapsedTimeTemp >= SecondsTemp)
 													{
-														NotificationTempIcon :=0
-														try
-															TraySetIcon("Icons.dll", 4)
+														TrayTip LenguajeList.Mensajes["TrayTip10"] "`n" FormatSeconds(0), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
 														
+														NotificationTemp := 0
 													}
 												}
 											}
 											else
-											{
+											{	
 												if NotiNormal
-													Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip12"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-
-												TemporizadorNotiIcon := 0
-												NotificationTempIcon :=0
+													Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip11"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+												
+												TemporizadorNotiWindows := 0
+												NotificationTemp :=0
 											}
 										}
+									}
+									
+									if TemporizadorNotiIcon
+									{
+										if ConectStatus
+											NumIcoInit := 5
+										else
+											NumIcoInit := 10
 										
-										
-										if (ElapsedTimeTemp >= SecondsTemp)
+										if (!isset(NotificationTempIcon) or NotificationTempIcon = 0 )
 										{
-											SecondsTemp := 0
-											Temporizador := 0
+											NotificationTempIcon :=1
+										}
+										
+										if !isset(DivisionPartTemp)
+											DivisionPartTemp := (SecondsTemp//4)
+											
+										if (DivisionPartTemp != 0)
+										{
+											if (NotificationTempIcon != 4 and NotificationTempIcon != 5)
+											{
+												if (ElapsedTimeTemp >= ((NotificationTempIcon * DivisionPartTemp)))
+												{
+													NotificationTempIcon +=1
+													try
+														TraySetIcon("Icons.dll", (NumIcoInit+NotificationTempIcon))
+													
+												}
+											}
+											else if (NotificationTempIcon = 4)
+											{
+												if !isset(DivisionPartTempFinal)
+													DivisionPartTempFinal := DivisionPartTemp//3
+												if (ElapsedTimeTemp >= (((NotificationTempIcon-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
+												{
+													NotificationTempIcon +=1
+													try
+														TraySetIcon("Icons.dll", (NumIcoInit+NotificationTempIcon))
+													
+												}
+											}
+											else if (NotificationTempIcon = 5)
+											{
+												if (ElapsedTimeTemp >= SecondsTemp)
+												{
+													NotificationTempIcon :=0
+													try
+													{
+														if ConectStatus
+															TraySetIcon("Icons.dll", 5)
+														else
+															TraySetIcon("Icons.dll", 4)
+													}
+													
+												}
+											}
+										}
+										else
+										{
+											if NotiNormal
+												Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip12"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+												
+											TemporizadorNotiIcon := 0
+											NotificationTempIcon :=0
+										}
+									}
+									
+									
+									if (ElapsedTimeTemp >= SecondsTemp)
+									{
+										SecondsTemp := 0
+										Temporizador := 0
+										
+										if TemporizadorNotiWindows
+										{
 											if (NotificationTemp = 5)
 											{
 												TrayTip LenguajeList.Mensajes["TrayTip10"] FormatSeconds(0),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
 												NotificationTemp :=0
 											}
-											
-											if (NotificationTempIcon = 5)
-											{
-												try
-													TraySetIcon("Icons.dll", 4)
-												NotificationTempIcon :=0
-											}
-											
-											global AIconTipold
-											A_IconTip := AIconTipold
-											
-											MenuHandler(LenguajeList.BarraMenu["QuitarCuenta"], 4, A_TrayMenu)
-											A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
-											A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
 										}
+										
+										if (NotificationTempIcon = 5)
+										{
+											try
+											{
+												if ConectStatus
+													TraySetIcon("Icons.dll", 5)
+												else
+													TraySetIcon("Icons.dll", 4)
+											}
+											NotificationTempIcon :=0
+										}
+										
+										global AIconTipold
+										A_IconTip := AIconTipold
+										
+										MenuHandler(LenguajeList.BarraMenu["QuitarCuenta"], 4, A_TrayMenu)
+										A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
+										A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
 									}
 								}
-									
-								break
+								
+								
 							}
+
+							break		
 						} 
 						else 
 						{
@@ -5510,7 +5366,7 @@ VerefyConx()
 PlayGiftAction(GifSelectedText, EfectoEntradaGif, PosVGif, UpDownEfectoEntradaGif, UpDownTiempoEntradaGif, EfectoSalidaGif, UpDownEfectoSalidaGif, BarradeTareasGif, *)
 {								
 	MyGif := Gui()
-	MyGif.Opt("-Caption -Border +AlwaysOnTop +ToolWindow -DPIScale")
+	MyGif.Opt("-Caption -Border +AlwaysOnTop +ToolWindow")
 	WinSetTransColor 0xf0f0f0, MyGif.Hwnd
 	MyGif.MarginX := 0
 	MyGif.MarginY := 0
@@ -5768,7 +5624,7 @@ Send_WM_COPYDATA(StringToSend, TargetScriptTitle)
     ;TimeOutTime := 4000  ; Optional. Milliseconds to wait for response from receiver.ahk. Default is 5000
     ; Must use SendMessage not PostMessage.
 	; RetValue := SendMessage(0x004A, 0, CopyDataStruct,, TargetScriptTitle,,,, TimeOutTime)
-    RetValue := SendMessage(0x004A, 0, CopyDataStruct,, TargetScriptTitle) ; 0x004A is WM_COPYDATA.
+    RetValue := SendMessage(0x004A, 0, CopyDataStruct,, TargetScriptTitle,,,, 0) ; 0x004A is WM_COPYDATA.
     DetectHiddenWindows Prev_DetectHiddenWindows  ; Restore original setting for the caller.
     ;SetTitleMatchMode Prev_TitleMatchMode         ; Same.
     return RetValue  ; Return SendMessage's reply back to our caller.
