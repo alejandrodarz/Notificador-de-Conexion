@@ -11,11 +11,11 @@ SetTitleMatchMode 2
 SetControlDelay -1
 SetMouseDelay -1
 ; <for compiled scripts>
-;@Ahk2Exe-SetFileVersion 2.0.0
+;@Ahk2Exe-SetFileVersion 2.1.0
 ;@Ahk2Exe-SetDescription Notificador de Conexión
 ; </for compiled scripts>
 
-global Version := "v2.0.0"
+global Version := "v2.1.0"
 global WinAutoRunVerify := true
 global IniciarConWindows := 0
 global DarkMode := 0
@@ -180,6 +180,14 @@ global TimeRed := 0
 global sockserver := 0
 global StartTime := 0
 
+global VolMusic := 100
+
+global SetInternetAccountAuto  := 0
+
+global OnAccountSendData := 0
+
+global aTimeTimeAccount := 0
+
 
 ;global TimeRedAdapters := 0
 ;global IPAddOrRemove := ""
@@ -205,9 +213,8 @@ if FileExist("options.ini")
 	;///// [MyUpDown1-100]
 	MyUpDown4 := ["VerificarConx", "VerificarPingCada", "VerificarConxCada"]
 	
-
 	;///// [MyUpDown0-100]
-	MyUpDown5 := ["PosVGif1", "PosVGif2", "PosVGif3", "PosVGif4"]
+	MyUpDown5 := ["PosVGif1", "PosVGif2", "PosVGif3", "PosVGif4", "VolMusic"]
 	
 	;///// [MyUpDown200-5000]
 	MyUpDown6 := ["UpDownEfectoEntradaGif1", "UpDownEfectoEntradaGif2", "UpDownEfectoEntradaGif3", "UpDownEfectoEntradaGif4", "UpDownEfectoSalidaGif1", "UpDownEfectoSalidaGif2", "UpDownEfectoSalidaGif3", "UpDownEfectoSalidaGif4"]
@@ -392,10 +399,14 @@ if FileExist("options.ini")
 	RetrasoError=0
 	ServerOnPort=27015
 	TimeRed=0
+	VolMusic=100
 	)"
 	
 	FileAppend options, "options.ini"
 }
+
+try SoundPlay "soundfix.wav"
+AppVol("Notificador de Conexión.exe", VolMusic)
 
 LangCreate
 
@@ -517,6 +528,7 @@ LangCreate(*)
 		NotificationsTexto10=Notifications
 		NotificationsTexto11=Sounds
 		NotificationsTexto12=Delay
+		NotificationsTexto13=Volume:
 
 		[Options]
 		PaginasWebTexto1=Web Pages
@@ -676,6 +688,7 @@ LangCreate(*)
 		NotificacionesTexto10=Notificaciones
 		NotificacionesTexto11=Sonidos
 		NotificacionesTexto12=Retraso
+		NotificacionesTexto13=Volumen:
 
 		[Opciones]
 		PaginasWebTexto1=Paginas Web
@@ -806,7 +819,7 @@ LangChange(Lang, *)
 		else if (NumSection = 4)
 			KeysInScript :=	["Titulo","Pestanas","Texto1","Boton1","Boton2","Boton3"]
 		else if (NumSection = 5)
-			KeysInScript :=	["BasicasTexto1","BasicasTexto2","BasicasTexto3","BasicasTexto4","BasicasTexto5","BasicasTexto6","BasicasTexto7","BasicasTexto8","BasicasTexto9","PingTexto1","PingTexto2","PingTexto3","PingTexto4","CuentaTexto1","CuentaTexto2","CuentaTexto3","CuentaTexto4","NotificacionesTexto1","NotificacionesTexto2","NotificacionesTexto3","NotificacionesTexto4","NotificacionesTexto5","NotificacionesTexto6","NotificacionesTexto7","NotificacionesTexto8","NotificacionesTexto9", "NotificacionesTexto10", "NotificacionesTexto11", "NotificacionesTexto12"]
+			KeysInScript :=	["BasicasTexto1","BasicasTexto2","BasicasTexto3","BasicasTexto4","BasicasTexto5","BasicasTexto6","BasicasTexto7","BasicasTexto8","BasicasTexto9","PingTexto1","PingTexto2","PingTexto3","PingTexto4","CuentaTexto1","CuentaTexto2","CuentaTexto3","CuentaTexto4","NotificacionesTexto1","NotificacionesTexto2","NotificacionesTexto3","NotificacionesTexto4","NotificacionesTexto5","NotificacionesTexto6","NotificacionesTexto7","NotificacionesTexto8","NotificacionesTexto9", "NotificacionesTexto10", "NotificacionesTexto11", "NotificacionesTexto12", "NotificacionesTexto13"]
 		else if (NumSection = 6)
 			KeysInScript :=	["PaginasWebTexto1","PaginasWebTexto2","PaginasWebTexto3","PaginasWebTexto4","PaginasWebTexto5","PaginasWebTexto6","PaginasWebTexto61","PaginasWebTexto7","AvanzadoTexto1","AvanzadoTexto2","AvanzadoTexto3","AvanzadoTexto4","AvanzadoTexto5","TemporizadorTexto1","TemporizadorTexto3","TemporizadorTexto4","TemporizadorTexto5","RedTexto1","RedTexto2","RedTexto3"]
 		else if (NumSection = 7)
@@ -856,7 +869,9 @@ TrayMenuCreate(*)
 	Try
 		A_TrayMenu.SetIcon(LenguajeList.BarraMenu["PonerCuenta"], "shell32.dll", 168)
 		
-	
+	A_TrayMenu.Add(LenguajeList.BarraMenu["PonerCuenta"] " (Auto)", MenuHandler) 
+	Try
+		A_TrayMenu.SetIcon(LenguajeList.BarraMenu["PonerCuenta"] " (Auto)", "shell32.dll", 168)
 		
 	A_TrayMenu.Add(LenguajeList.BarraMenu["QuitarCuenta"], MenuHandler) 
 	Try
@@ -1043,6 +1058,21 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 			}
 		}
 	}
+	else if (ItemName = LenguajeList.BarraMenu["PonerCuenta"] " (Auto)")
+	{
+		global SetInternetAccountAuto
+		
+		if SetInternetAccountAuto
+		{
+			A_TrayMenu.UnCheck(LenguajeList.BarraMenu["PonerCuenta"] " (Auto)")
+			SetInternetAccountAuto := 0
+		}
+		else
+		{
+			A_TrayMenu.Check(LenguajeList.BarraMenu["PonerCuenta"] " (Auto)")
+			SetInternetAccountAuto := 1
+		}
+	}
 	else if (ItemName = LenguajeList.BarraMenu["QuitarCuenta"])
 	{
 		if (A_IconNumber != 1 and A_IconNumber != 2 and A_IconNumber != 3)
@@ -1194,8 +1224,6 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 			else
 				TraySetIcon("Icons.dll", 4)
 		}		
-
-		
 	}
 	else if (ItemName = LenguajeList.BarraMenu["BuscarActualizacion"])
 	{
@@ -1430,7 +1458,7 @@ OnMessage(0x404, AHK_NOTIFYICON1)
 AHK_NOTIFYICON1(wParam, lParam, *) 
 {
 if (lParam = 0x203) { 
-		MenuHandler(LenguajeList.BarraMenu["Configuracion"], 7, A_TrayMenu)
+		MenuHandler(LenguajeList.BarraMenu["Configuracion"], 8, A_TrayMenu)
     }
 }
 
@@ -1487,9 +1515,8 @@ AHK_NOTIFYICON(wParam, lParam, *)
 			{
 				if ToolTip1
 				{
-				
 					ElapsedTime := (A_TickCount - StartTime)//1000
-
+					
 					if InStr(A_IconTip, LenguajeList.Mensajes["IconTip5"])
 					{
 						A_IconTipnew := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount  "`n" LenguajeList.Mensajes["IconTip3"] " " FormatSeconds(TimeAccount - ElapsedTime)
@@ -1689,6 +1716,10 @@ Settings(*)
 
 	global ServerOnPort
 	global TimeRed
+	
+	global VolMusic
+	
+	
 	
 	;global TimeRedAdapters
 
@@ -1997,7 +2028,7 @@ Settings(*)
 	;//////
 
 	
-	;////////////////////////  GroupBox [Notificaciones]
+	;////////////////////////  GroupBox [Eventos]
 	
 	MyGui.Add("GroupBox", "xs w260 h220 Section Center", LenguajeList.General["NotificacionesTexto1"])
 	
@@ -2031,7 +2062,7 @@ Settings(*)
 			SoundErrorNum := A_Index
 	}
 	
-	MyRadioGroupNotiChooose := MyGui.Add("Radio", "xs+40 yp+25 vNotiChooose", LenguajeList.General["NotificacionesTexto10"])
+	MyRadioGroupNotiChooose := MyGui.Add("Radio", "xs+40 yp+20 vNotiChooose", LenguajeList.General["NotificacionesTexto10"])
 	MyRadioGroupNotiChooose.value := 1
 	MyRadioGroupNotiChooose.OnEvent("Click", GNotiChooose) 
 	MyRadioGroupSoundsChooose := MyGui.Add("Radio", "xs+140 yp vSoundsChooose", LenguajeList.General["NotificacionesTexto11"])
@@ -2061,7 +2092,7 @@ Settings(*)
 	;////// 
 	
 	;////// [Conectado]
-	MyCheckNotiConectadoText := MyGui.Add("Text","xs+15 yp+25", LenguajeList.General["NotificacionesTexto5"])
+	MyCheckNotiConectadoText := MyGui.Add("Text","xs+15 yp+20", LenguajeList.General["NotificacionesTexto5"])
 	MyCheckNotiGifConectado := MyGui.Add("Checkbox","xs+121 yp vNotiGifConectado", " ")
 	MyCheckNotiGifConectado.value := NotiGifConectado
 	MyCheckNotiConectado := MyGui.Add("Checkbox","xs+181 yp vConectado", " ")
@@ -2076,7 +2107,7 @@ Settings(*)
 	
 	
 	;////// [Desconocido]
-	MyCheckNotiNacionalText := MyGui.Add("Text","xs+15 yp+30", LenguajeList.General["NotificacionesTexto6"])
+	MyCheckNotiNacionalText := MyGui.Add("Text","xs+15 yp+28", LenguajeList.General["NotificacionesTexto6"])
 	MyCheckNotiGifNacional := MyGui.Add("Checkbox","xs+121 yp vNotiGifNacional", " ")
 	MyCheckNotiGifNacional.value := NotiGifNacional
 	MyCheckNotiNacional := MyGui.Add("Checkbox","xs+181 yp vNacional", " ")
@@ -2091,7 +2122,7 @@ Settings(*)
 	
 	
 	;////// [Desconectado]
-	MyCheckNotiDesconectadoText := MyGui.Add("Text","xs+15 yp+30", LenguajeList.General["NotificacionesTexto7"])
+	MyCheckNotiDesconectadoText := MyGui.Add("Text","xs+15 yp+28", LenguajeList.General["NotificacionesTexto7"])
 	MyCheckNotiGifDesconectado := MyGui.Add("Checkbox","xs+121 yp vNotiGifDesconectado", " ")
 	MyCheckNotiGifDesconectado.value := NotiGifDesconectado
 	MyCheckNotiDesconectado := MyGui.Add("Checkbox","xs+181 yp vDesconectado", " ")
@@ -2106,7 +2137,7 @@ Settings(*)
 	
 	
 	;////// [Error]
-	MyCheckNotiErrorText := MyGui.Add("Text","xs+15 yp+30", LenguajeList.General["NotificacionesTexto8"])
+	MyCheckNotiErrorText := MyGui.Add("Text","xs+15 yp+28", LenguajeList.General["NotificacionesTexto8"])
 	MyCheckNotiGifError := MyGui.Add("Checkbox","xs+121 yp vNotiGifError", " ")
 	MyCheckNotiGifError.value := NotiGifError
 	MyCheckNotiError := MyGui.Add("Checkbox","xs+181 yp vNotiError", " ")
@@ -2120,8 +2151,15 @@ Settings(*)
 	;//////
 	
 	
+	MySliderText := MyCheckNotiErrorText := MyGui.Add("Text","xs+15 yp+35", LenguajeList.General["NotificacionesTexto13"])
+	MySlider := MyGui.Add("Slider", "xs+95 w152 h25 yp-7 vMySlider Range0-100 TickInterval10 ToolTipBottom")
+	MySlider.Value := VolMusic
+	
+	MySliderText.Visible := 0
+	MySlider.Visible := 0
+	
 	;////// [Notificaciones básicas y de información.]
-	MyCheckNotiNormal := MyGui.Add("Checkbox","xs+15 y+20 vNotiNormal", " ")
+	MyCheckNotiNormal := MyGui.Add("Checkbox","xs+15 y+12 vNotiNormal", " ")
 	MyCheckNotiNormal.value := NotiNormal
 	MyTextNotiNormal := MyGui.Add("Text","yp x+-1", LenguajeList.General["NotificacionesTexto9"])
 	MyTextNotiNormal.OnEvent("Click", GMyTextNotiNormal)
@@ -2160,6 +2198,9 @@ Settings(*)
 			MyCheckNotiDesconectado.Visible := 1
 			MyCheckNotiGifError.Visible := 1
 			MyCheckNotiError.Visible := 1
+			
+			MySliderText.Visible := 0
+			MySlider.Visible := 0
 		}
 		else
 		{
@@ -2190,6 +2231,9 @@ Settings(*)
 			MyUpDownRetrasoConectado.Visible := 1
 			MyEditRetrasoConectado.Visible := 1
 			MyTextRetrasoMs.Visible := 1
+			
+			MySliderText.Visible := 1
+			MySlider.Visible := 1
 		}
 	}
 	
@@ -3600,6 +3644,8 @@ Settings(*)
 				MyCheckTimeRed.value := 0
 				MyEditPuerto.value := 27015
 				
+				MySlider.Value := 100
+				
 				;MyDropDownListTimeRedAdapters.Value := 0
 				;MyEditIPAddOrRemove.Value := ""
 				
@@ -3664,7 +3710,10 @@ Settings(*)
 		global EditConectado := SaveData.MyEditConectado 
 		global EditNacional := SaveData.MyEditNacional 
 		global EditDesconectado := SaveData.MyEditDesconectado
-		
+
+		global VolMusic := SaveData.MySlider
+		AppVol("Notificador de Conexión.exe", VolMusic)
+
 		global RetrasoConectado := SaveData.RetrasoConectado
 		global RetrasoNacional := SaveData.RetrasoNacional
 		global RetrasoDesconectado := SaveData.RetrasoDesconectado
@@ -4298,7 +4347,8 @@ Settings(*)
 		options .= "RetrasoError=" SaveData.RetrasoError "`n"
 		
 		options .= "ServerOnPort=" ServerOnPort "`n"
-		options .= "TimeRed=" SaveData.TimeRed
+		options .= "TimeRed=" SaveData.TimeRed "`n"
+		options .= "VolMusic=" SaveData.MySlider
 		;options .= "TimeRedAdapters=" SaveData.TimeRedAdapters "`n"
 		;options .= "IPAddOrRemove=" IPAddOrRemove
 		
@@ -4753,21 +4803,23 @@ VerefyConx()
 													}
 													else
 													{
+														StartTime := A_TickCount
+														global aTimeTimeAccount := A_Hour * 3600 + A_Min * 60 + A_Sec
+														
 														If ConectStatus
 															A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
 														else
 															A_IconTip := LenguajeList.Mensajes["IconTip6"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
-														
-														StartTime := A_TickCount
 														
 														aTime := StrSplit(whr.ResponseText, ":")
 														TimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
 														
 														if TimeRed
 														{
+															global OnAccountSendData := 1
 															global sockserver
 															global ServerOnPort
-															msgtosend := UserNameAccount ";" TimeAccount ";" StartTime
+															msgtosend := UserNameAccount ";" TimeAccount ";" aTimeTimeAccount
 															respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
 															respsize := StrPut(msgtosend, respbuf, Encoding)
 															sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
@@ -4799,7 +4851,7 @@ VerefyConx()
 											if (TimeIs != "0")
 											{	
 												aTime := StrSplit(TimeIs, ":")
-												aTimeTimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
+												global aTimeTimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
 												aTimeTimeAccount1 := A_Hour * 3600 + A_Min * 60 + A_Sec
 												StartTime := A_TickCount
 												
@@ -4811,9 +4863,10 @@ VerefyConx()
 
 												if TimeRed
 												{
+													global OnAccountSendData := 1
 													global sockserver
 													global ServerOnPort
-													msgtosend := UserNameAccount ";" TimeAccount ";" StartTime
+													msgtosend := UserNameAccount ";" TimeAccount ";" aTimeTimeAccount
 													respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
 													respsize := StrPut(msgtosend, respbuf, Encoding)
 													sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
@@ -5183,6 +5236,9 @@ VerefyConx()
 								else
 									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])	
 								
+								if SetInternetAccountAuto 
+									MenuHandler(LenguajeList.BarraMenu["PonerCuenta"], 3, A_TrayMenu)
+									
 								if Temporizador
 								{
 									Temporizador := 0
@@ -5380,7 +5436,11 @@ PlayGiftAction(GifSelectedText, EfectoEntradaGif, PosVGif, UpDownEfectoEntradaGi
 			Value := RegRead()
 			if Value = A_ScriptFullPath
 			{
-				IpPromoted := RegRead(A_LoopRegKey, "IsPromoted")
+				try
+					IpPromoted := RegRead(A_LoopRegKey, "IsPromoted")
+				catch
+					IpPromoted := 0
+					
 				PahtIsPromoted := A_LoopRegKey
 				
 				if !IpPromoted
@@ -6998,18 +7058,18 @@ onRecv(sock)
 	msgrecive := StrGet(buf, size, Encoding:="UTF-8")
 	if (msgrecive = "RequestData")
 	{
-		global DataSesion
-		if DataSesion != ""
+		global OnAccountSendData
+		if OnAccountSendData
 		{
 			global UserNameAccount
 			global TimeAccount
-			global StartTime
 			global sockserver
-			
+			global aTimeTimeAccount
+	
 			IPfrom := DllCall( "Ws2_32.dll\inet_ntoa","UInt",NumGet(addrFrom,4,"UInt"), "AStr" ) 
 			Portfrom := DllCall("ws2_32\htons", "UShort", NumGet(addrFrom, 2, "UShort"), "UShort")
 			
-			msgtosend := UserNameAccount ";" TimeAccount ";" StartTime
+			msgtosend := UserNameAccount ";" TimeAccount ";" aTimeTimeAccount
 			respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
 			respsize := StrPut(msgtosend, respbuf, Encoding)
 			sockserver.SendTo(respbuf, respsize, [IPfrom, Portfrom])
@@ -7022,9 +7082,51 @@ onRecv(sock)
 			msgrecivearray := StrSplit(msgrecive, ";")
 			global UserNameAccount := msgrecivearray[1]
 			global TimeAccount := msgrecivearray[2]
-			global StartTime := msgrecivearray[3]
+			global aTimeTimeAccount := msgrecivearray[3]
+			global StartTime := A_TickCount - ((A_Hour * 3600 + A_Min * 60 + A_Sec) - aTimeTimeAccount)*1000
 		}
 	}
 
 }
 
+
+AppVol(Target, Level := 0) {
+	ProcessId := ProcessExist(Target)
+    GUID := Buffer(16)
+    DllCall("ole32\CLSIDFromString", "Str", "{77AA99A0-1BD6-484F-8BC7-2C654C9A9B6F}", "Ptr", GUID)
+    IMMDeviceEnumerator := ComObject("{BCDE0395-E52F-467C-8E3D-C4579291692E}", "{A95664D2-9614-4F35-A746-DE8DB63617E6}")
+    ComCall(4, IMMDeviceEnumerator, "UInt", 0, "UInt", 1, "Ptr*", &IMMDevice := 0)
+    ObjRelease(IMMDeviceEnumerator.Ptr)
+    ComCall(3, IMMDevice, "Ptr", GUID, "UInt", 23, "Ptr", 0, "Ptr*", &IAudioSessionManager2 := 0)
+    ObjRelease(IMMDevice)
+    ComCall(5, IAudioSessionManager2, "Ptr*", &IAudioSessionEnumerator := 0) || DllCall("SetLastError", "UInt", 0)
+    ObjRelease(IAudioSessionManager2)
+    ComCall(3, IAudioSessionEnumerator, "UInt*", &cSessions := 0)
+    loop cSessions {
+        ComCall(4, IAudioSessionEnumerator, "Int", A_Index - 1, "Ptr*", &IAudioSessionControl := 0)
+        IAudioSessionControl2 := ComObjQuery(IAudioSessionControl, "{BFB7FF88-7239-4FC9-8FA2-07C950BE9C6D}")
+        ObjRelease(IAudioSessionControl)
+        ComCall(14, IAudioSessionControl2, "UInt*", &pid := 0)
+        if (pid != ProcessId) {
+            continue
+        }
+        ISimpleAudioVolume := ComObjQuery(IAudioSessionControl2, "{87CE5498-68D6-44E5-9215-6DA47EF883D8}")
+        ComCall(6, ISimpleAudioVolume, "Int*", &isMuted := 0)
+        if (isMuted || !Level) {
+            ComCall(5, ISimpleAudioVolume, "Int", !isMuted, "Ptr", 0)
+        }
+        if (Level) {
+            ComCall(4, ISimpleAudioVolume, "Float*", &levelOld := 0)
+            if (Level ~= "^[-+]") {
+                levelNew := Max(0.0, Min(1.0, levelOld + (Level / 100)))
+            } else {
+                levelNew := Level / 100
+            }
+            if (levelNew != levelOld) {
+                ComCall(3, ISimpleAudioVolume, "Float", levelNew, "Ptr", 0)
+            }
+        }
+        ObjRelease(ISimpleAudioVolume.Ptr)
+    }
+    return (IsSet(levelOld) ? Round(levelOld * 100) : -1)
+}
