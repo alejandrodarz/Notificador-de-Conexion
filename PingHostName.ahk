@@ -12,11 +12,20 @@ OnMessage 0x004A, Receive_WM_COPYDATA  ; 0x004A is WM_COPYDATA
 
 Receive_WM_COPYDATA(wParam, lParam, msg, hwnd)
 {
-    StringAddress := NumGet(lParam, 2*A_PtrSize, "Ptr")  ; Retrieves the CopyDataStruct's lpData member.
+	 
+	StringAddress := NumGet(lParam, 2*A_PtrSize, "Ptr")  ; Retrieves the CopyDataStruct's lpData member.
     CopyOfData := StrGet(StringAddress)  ; Copy the string out of the structure.
     ; Show it with ToolTip vs. MsgBox so we can return in a timely fashion:
-
 	ArrayValueEnv := StrSplit(CopyOfData, " ")
+	
+	IpResolve := "Failed"
+	IpResolve := ResolveHostname(ArrayValueEnv[1])
+	
+	if(IpResolve = "Failed")
+	{
+		Ping := 0
+		return Ping
+	}
 	
 	Loop(ArrayValueEnv[3])
 	{
@@ -30,7 +39,7 @@ Receive_WM_COPYDATA(wParam, lParam, msg, hwnd)
 			Ping := 0
 			Continue
 		}
-		NumericAddress := DllCall("ws2_32\inet_addr","AStr",ArrayValueEnv[1],"UInt")
+		NumericAddress := DllCall("ws2_32\inet_addr","AStr",IpResolve,"UInt")
 		If NumericAddress = 0xFFFFFFFF ;INADDR_NONE
 		{
 			Ping := 0
@@ -81,4 +90,26 @@ Receive_WM_COPYDATA(wParam, lParam, msg, hwnd)
 		break
 	}
     return Ping  ; Returning 1 (true) is the traditional way to acknowledge this message.
+}
+
+ResolveHostname(hostname)
+{
+    WSADATA := Buffer(394 + (A_PtrSize - 2) + A_PtrSize, 0) 
+	WSADATAPtr := WSADATA.Ptr
+	
+    if (DllCall("ws2_32\WSAStartup", "ushort", 0x0202, "uptr", WSADATAPtr) != 0)
+        return "Failed"
+
+    hints := Buffer(16 + 4 * A_PtrSize, 0)
+	hintsPtr := hints.Ptr
+	
+    if (DllCall("ws2_32\getaddrinfo", "astr", hostname, "ptr", 0, "ptr", hints, "ptr*", &hintsPtr))
+        return "Failed"
+
+	addr := hintsPtr
+	offset := 16 + 2 * A_PtrSize
+	var := NumGet(addr+0, offset, "ptr")
+	ipaddr := DllCall("ws2_32\inet_ntoa", "uint", NumGet(var + 4, 0, "uint"), "astr")
+	
+    return ipaddr
 }

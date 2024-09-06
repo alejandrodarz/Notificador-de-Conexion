@@ -1,8 +1,9 @@
-﻿#SingleInstance Ignore
+﻿#SingleInstance Force
 #Include "lib\Dark_MsgBox_v2.ahk"
 #Include "lib\Gdip_All.ahk"
 #Include "lib\github.ahk"
 #Include "lib\socket.ahk"
+
 pToken := Gdip_Startup()
 #Warn All, Off
 A_TrayMenu.Delete()
@@ -11,11 +12,11 @@ SetTitleMatchMode 2
 SetControlDelay -1
 SetMouseDelay -1
 ; <for compiled scripts>
-;@Ahk2Exe-SetFileVersion 2.1.0
+;@Ahk2Exe-SetFileVersion 2.2.0
 ;@Ahk2Exe-SetDescription Notificador de Conexión
 ; </for compiled scripts>
 
-global Version := "v2.1.0"
+global Version := "v2.2.0"
 global WinAutoRunVerify := true
 global IniciarConWindows := 0
 global DarkMode := 0
@@ -55,11 +56,8 @@ global EditConectado := "google.com"
 global EditNacional := "cubadebate.cu"
 global EditDesconectado := "secure.etecsa.net"
 	
-
-global EditUser1 := ""
-global EditPassword1 := ""
-global EditUser2 := ""
-global EditPassword2 := ""
+global EditUser := ""
+global EditPassword := ""
 
 global DataPers := 0
 global EditDataPers := "username=usuario&password=contraseña"
@@ -157,8 +155,6 @@ global BarradeTareasGif4:= 0
 
 global Prueba := 0
 
-global UsarSegundaCuenta := 0
-
 global LenguajeText:=""
 global LenguajeList
 global actininorepeat := 0
@@ -188,6 +184,9 @@ global OnAccountSendData := 0
 
 global aTimeTimeAccount := 0
 
+global SaveAccounts := ""
+global SelectCuenta := 0
+
 
 ;global TimeRedAdapters := 0
 ;global IPAddOrRemove := ""
@@ -196,10 +195,10 @@ global aTimeTimeAccount := 0
 if FileExist("options.ini")
 {
 	;///// [MyChecks]
-	MyChecks := ["IniciarConWindows", "DarkMode", "AbrirWebAlConectarse", "AbrirWebAlDesconocer", "AbrirWebAlDesconectarse", "AbrirWebAlError", "WebOption", "NotiConectado", "NotiNacional", "NotiDesconectado", "NotiError", "DataPers", "WebOffAccount", "IniFileReadTime", "WebConectado", "WebDesconocido", "WebDesconectado", "TemporizadorNotiTooltip", "TemporizadorNotiIcon", "TemporizadorNotiWindows", "NotiGifError", "NotiGifDesconectado", "NotiGifNacional", "NotiGifConectado", "NotiNormal", "ConectadoGif", "DesconocidoGif", "DesconectadoGif", "ErrorGif", "TamanodelGif1", "TamanodelGif2", "TamanodelGif3", "TamanodelGif4", "RelacionGif1", "RelacionGif2", "RelacionGif3", "RelacionGif4", "VoltearEntradaGif1", "VoltearSalidaGif1", "VoltearEntradaGif2", "VoltearSalidaGif2", "VoltearEntradaGif3", "VoltearSalidaGif3", "VoltearEntradaGif4", "VoltearSalidaGif4", "BarradeTareasGif1", "BarradeTareasGif2", "BarradeTareasGif3", "BarradeTareasGif4", "UsarSegundaCuenta", "ActIni", "TimeRed"]
+	MyChecks := ["IniciarConWindows", "DarkMode", "AbrirWebAlConectarse", "AbrirWebAlDesconocer", "AbrirWebAlDesconectarse", "AbrirWebAlError", "WebOption", "NotiConectado", "NotiNacional", "NotiDesconectado", "NotiError", "DataPers", "WebOffAccount", "IniFileReadTime", "WebConectado", "WebDesconocido", "WebDesconectado", "TemporizadorNotiTooltip", "TemporizadorNotiIcon", "TemporizadorNotiWindows", "NotiGifError", "NotiGifDesconectado", "NotiGifNacional", "NotiGifConectado", "NotiNormal", "ConectadoGif", "DesconocidoGif", "DesconectadoGif", "ErrorGif", "TamanodelGif1", "TamanodelGif2", "TamanodelGif3", "TamanodelGif4", "RelacionGif1", "RelacionGif2", "RelacionGif3", "RelacionGif4", "VoltearEntradaGif1", "VoltearSalidaGif1", "VoltearEntradaGif2", "VoltearSalidaGif2", "VoltearEntradaGif3", "VoltearSalidaGif3", "VoltearEntradaGif4", "VoltearSalidaGif4", "BarradeTareasGif1", "BarradeTareasGif2", "BarradeTareasGif3", "BarradeTareasGif4", "ActIni", "TimeRed"]
 	
 	;///// [MyEdits]
-	MyEdits := ["WebAlConectarse", "WebAlDesconocer", "WebAlDesconectarse", "WebAlError", "SoundConectado", "SoundNacional", "SoundDesconectado", "SoundError", "EditConectado", "EditNacional", "EditDesconectado", "EditUser1", "EditPassword1", "EditDataPers", "EditWebOffAccount", "EditIniFileReadTime", "AnchoGif1", "AnchoGif2", "AnchoGif3", "AnchoGif4", "LargoGif1", "LargoGif2", "LargoGif3", "LargoGif4", "GifSelected1", "GifSelected2", "GifSelected3", "GifSelected4", "GifSelectedText1", "GifSelectedText2", "GifSelectedText3", "GifSelectedText4", "EditUser2", "EditPassword2", "LenguajeText", "DataSesion"]
+	MyEdits := ["WebAlConectarse", "WebAlDesconocer", "WebAlDesconectarse", "WebAlError", "SoundConectado", "SoundNacional", "SoundDesconectado", "SoundError", "EditConectado", "EditNacional", "EditDesconectado", "EditUser", "EditPassword", "EditDataPers", "EditWebOffAccount", "EditIniFileReadTime", "AnchoGif1", "AnchoGif2", "AnchoGif3", "AnchoGif4", "LargoGif1", "LargoGif2", "LargoGif3", "LargoGif4", "GifSelected1", "GifSelected2", "GifSelected3", "GifSelected4", "GifSelectedText1", "GifSelectedText2", "GifSelectedText3", "GifSelectedText4", "LenguajeText", "DataSesion", "SaveAccounts", "SelectCuenta"]
 	
 	;///// [MyUpDown0-18]
 	MyUpDown1 := ["EfectoEntradaGif1", "EfectoEntradaGif2", "EfectoEntradaGif3", "EfectoEntradaGif4", "EfectoSalidaGif1", "EfectoSalidaGif2", "EfectoSalidaGif3", "EfectoSalidaGif4", "UpDownTiempoEntradaGif1", "UpDownTiempoEntradaGif2", "UpDownTiempoEntradaGif3", "UpDownTiempoEntradaGif4"]
@@ -270,6 +269,9 @@ if FileExist("options.ini")
 				IniWrite %Key%, "options.ini", "settings", Key
 		}
 	}
+	
+	if (SaveAccounts != "")
+		SaveAccounts .= " "
 } else
 {
 	options := "
@@ -300,10 +302,8 @@ if FileExist("options.ini")
 	EditConectado=google.com
 	EditNacional=cubadebate.cu
 	EditDesconectado=secure.etecsa.net
-	EditUser1=
-	EditPassword1=
-	EditUser2=
-	EditPassword2=
+	EditUser=
+	EditPassword=
 	DataPers=0
 	EditDataPers=username=usuario&password=contraseña
 	EditPageLogin=https://secure.etecsa.net:8443//LoginServlet
@@ -390,7 +390,6 @@ if FileExist("options.ini")
 	VoltearSalidaGif3=0
 	VoltearEntradaGif4=0
 	VoltearSalidaGif4=0
-	UsarSegundaCuenta=0
 	LenguajeText=
 	DataSesion=
 	RetrasoConectado=0
@@ -400,6 +399,8 @@ if FileExist("options.ini")
 	ServerOnPort=27015
 	TimeRed=0
 	VolMusic=100
+	SaveAccounts=
+	SelectCuenta=0
 	)"
 	
 	FileAppend options, "options.ini"
@@ -408,7 +409,10 @@ if FileExist("options.ini")
 try SoundPlay "soundfix.wav"
 AppVol("Notificador de Conexión.exe", VolMusic)
 
+
+
 LangCreate
+
 
 LangCreate(*)
 {
@@ -512,7 +516,7 @@ LangCreate(*)
 		PingTexto2=Ping to Internet
 		PingTexto3=Ping to Intranet
 		PingTexto4=Ping to the Portal
-		TextAccount1=Account
+		TextAccount1=Accounts
 		TextAccount2=User:
 		TextAccount3=Password:
 		TextAccount4=Use second account.
@@ -672,7 +676,7 @@ LangCreate(*)
 		PingTexto2=Ping a Internet
 		PingTexto3=Ping a Intranet
 		PingTexto4=Ping al Portal
-		CuentaTexto1=Cuenta
+		CuentaTexto1=Cuentas
 		CuentaTexto2=Usuario:
 		CuentaTexto3=Contraseña:
 		CuentaTexto4=Usar segunda cuenta.
@@ -738,8 +742,6 @@ LangCreate(*)
 		FileAppend Lenguaje, "Lenguajes\Español [es-ES].ini"
 	}
 }
-
-
 
 if (LenguajeText = "")
 {
@@ -842,6 +844,7 @@ LangChange(Lang, *)
 	}
 }
 
+global TitteGUI := LenguajeList.Configuracion["Titulo"]
 
 uxtheme := DllCall("GetModuleHandle", "str", "uxtheme", "ptr")
 SetPreferredAppMode := DllCall("GetProcAddress", "ptr", uxtheme, "ptr", 135, "ptr")
@@ -891,13 +894,38 @@ TrayMenuCreate(*)
 	Try
 		A_TrayMenu.SetIcon(LenguajeList.BarraMenu["QuitarTemporizador"], "ieframe.dll", 75)
 		
+	A_TrayMenu.Add()
 	
+	
+	global Submenu := Menu()
+	
+	global SaveAccounts
+	global SelectCuenta
+	
+	if (SaveAccounts != "")
+	{
+		ListCuentas := StrSplit(RTrim(SaveAccounts, A_Space "," A_Space), A_Space "," A_Space)
+		Loop ListCuentas.Length
+		{
+			NameSub := StrSplit(ListCuentas[A_Index], A_Space "|" A_Space)[1]
+			Submenu.Add(NameSub, MenuHandlerAccount)
+			if (A_Index = SelectCuenta)
+				Submenu.Check(NameSub)
+		}
+	}
+	
+	
+
+	A_TrayMenu.Add(LenguajeList.General["CuentaTexto1"], Submenu)
+	Try
+		A_TrayMenu.SetIcon(LenguajeList.General["CuentaTexto1"], "shell32.dll", 171)
+
 		
 	A_TrayMenu.Add()
 	A_TrayMenu.Add(LenguajeList.BarraMenu["Configuracion"], MenuHandler) 
 
 	Try
-		A_TrayMenu.SetIcon(LenguajeList.BarraMenu["Configuracion"], "shell32.dll", 171)
+		A_TrayMenu.SetIcon(LenguajeList.BarraMenu["Configuracion"], "shell32.dll", 315)
 		
 	A_TrayMenu.Add()
 	A_TrayMenu.Add(LenguajeList.BarraMenu["BuscarActualizacion"], MenuHandler) 
@@ -915,8 +943,32 @@ A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])
 A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
 A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
 A_TrayMenu.Disable(LenguajeList.BarraMenu["BuscarActualizacion"])
+
 	
+MenuHandlerAccount(ItemName, ItemPos, MyMenu) {
+	global EditUser
+	if EditUser != ItemName
+	{
+		MyMenu.UnCheck(EditUser)
+		MyMenu.Check(ItemName)
+		
+		global SaveAccounts
+		global SelectCuenta := ItemPos
+
+		ListCuentas := StrSplit(RTrim(SaveAccounts, A_Space "," A_Space), A_Space "," A_Space)[ItemPos]
+		CuentaPassArray := StrSplit(ListCuentas, A_Space "|" A_Space)
+
+		EditUser := CuentaPassArray[1]
+		global EditPassword := CuentaPassArray[2]
+		
+		IniWrite EditUser, "options.ini", "settings", "EditUser"
+		IniWrite CuentaPassArray[2], "options.ini", "settings", "EditPassword"
+		IniWrite ItemPos, "options.ini", "settings", "SelectCuenta"
+	}
+}
+
 MenuHandler(ItemName, ItemPos, MyMenu) {
+	
 	if (ItemName = LenguajeList.BarraMenu["Pausar"])
 	{
 		global IconSalve 
@@ -963,12 +1015,9 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 	{
 		if (A_IconNumber = 3)
 		{
-			global EditUser1
-			global EditPassword1
-			global EditUser2
-			global EditPassword2
-			global UsarSegundaCuenta
-			
+			global EditUser
+			global EditPassword
+
 			global DataPers 
 			global EditDataPers
 			global EditPageLogin 
@@ -980,22 +1029,11 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 
 			if !DataPers
 			{
-				if !UsarSegundaCuenta
-				{
-					if (EditUser1 = "" or EditPassword1 = "")
-						return
-					
-					usernametomsg := EditUser1
-					requestdata := "username=" EditUser1 "&password=" EditPassword1
-				}
-				else
-				{
-					if (EditUser2 = "" or EditPassword2 = "")
-						return
-						
-					usernametomsg := EditUser2
-					requestdata := "username=" EditUser2 "&password=" EditPassword2
-				}
+				if (EditUser = "" or EditPassword = "")
+					return
+				
+				usernametomsg := EditUser
+				requestdata := "username=" EditUser "&password=" EditPassword
 			}
 			else
 			{
@@ -1090,96 +1128,79 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 					
 				if (DataSesion != "")
 				{
-					IpResolveEtecsa := "Failed"
-					IpResolveEtecsa := ResolveHostname("secure.etecsa.net")
-					
-					if(IpResolveEtecsa != "Failed")
-					{
-						DataEnv := IpResolveEtecsa " " VerificarPingCada " " VerificarConx
-					
-						if !ProcessExist("PingHostName.exe")
-						{
-							try
-							{
-								Run "PingHostName.exe"
-								Prev_DetectHiddenWindows := A_DetectHiddenWindows
-								DetectHiddenWindows True
-								timeleft := 0
-								while (!WinExist("ahk_exe PingHostName.exe") and timeleft < 5000)
-								{
-									timeleft += 10
-									sleep(10)
-								}
-								DetectHiddenWindows Prev_DetectHiddenWindows  ; Restore original setting for the caller.
-							}
-							catch
-								exitapp
-						}
-								
-						if !ProcessExist("PingHostName.exe")
-							exitapp
-							
-						PingEtecsa := 0
+					DataEnv := "secure.etecsa.net " VerificarPingCada " " VerificarConx
 				
+					if !ProcessExist("PingHostName.exe")
+					{
 						try
-							PingEtecsa := Send_WM_COPYDATA(DataEnv, "ahk_exe PingHostName.exe")
-							
-						if (PingEtecsa != 0 and PingEtecsa != 1)
-							PingEtecsa := 0
-
-						If PingEtecsa
 						{
-							try
-							{
-								whr := ComObject("WinHttp.WinHttpRequest.5.1")
-								whr.Open("POST", "https://secure.etecsa.net:8443/LogoutServlet")
-								whr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-								whr.Send(DataSesion)
-									
-								global NotiNormal 
-								
-								if InStr(whr.ResponseText, "SUCCESS")
-								{
-									if NotiNormal
-										Notify.Show(LenguajeList.Mensajes["Msgbox7"], UserNameAccount "`n" LenguajeList.Mensajes["TrayTip5"], 'Icons.dll|Icon4',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=3399ff Style=EDGE')
-										
-									DataSesion := ""
-									IniWrite DataSesion, "options.ini", "settings", "DataSesion"
-									
-									global EditUser1
-									global EditUser2
-									global UsarSegundaCuenta
-									global DataPers 
-									
-									if !UsarSegundaCuenta
-										EditUser := EditUser1
-									else
-										EditUser := EditUser2
-									
-									if (EditUser != "" or DataPers != "")
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerCuenta"])	
-									else
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])	
+							Run "PingHostName.exe"
+							Prev_DetectHiddenWindows := A_DetectHiddenWindows 	
+							DetectHiddenWindows True
+							WinWait "ahk_exe PingHostName.exe",, 5000
+							DetectHiddenWindows Prev_DetectHiddenWindows
+						}
+						catch
+							exitapp
+					}
+							
+					if !ProcessExist("PingHostName.exe")
+						exitapp
+						
+					PingEtecsa := 0
 			
-									A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
-									
-									UserNameAccount := ""
-								}
-								else
-								{
-									if NotiNormal
-										Notify.Show(LenguajeList.Mensajes["Msgbox6"], UserNameAccount "`n" LenguajeList.Mensajes["TrayTip6"], 'Icons.dll|Icon2',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=b10000 Style=EDGE')
-								}
-							}
-							catch
+					try
+						PingEtecsa := Send_WM_COPYDATA(DataEnv, "ahk_exe PingHostName.exe")
+						
+					if (!isset(PingEtecsa) or (PingEtecsa != 0 and PingEtecsa != 1))
+						PingEtecsa := 0
+
+					If PingEtecsa
+					{
+						try
+						{
+							whr := ComObject("WinHttp.WinHttpRequest.5.1")
+							whr.Open("POST", "https://secure.etecsa.net:8443/LogoutServlet")
+							whr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+							whr.Send(DataSesion)
+								
+							global NotiNormal 
+							
+							if InStr(whr.ResponseText, "SUCCESS")
 							{
 								if NotiNormal
-								{
-									Notify.Show(LenguajeList.Mensajes["Msgbox6"], LenguajeList.Mensajes["TrayTip7"], 'Icons.dll|Icon2',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=b10000 Style=EDGE')
-								}
+									Notify.Show(LenguajeList.Mensajes["Msgbox7"], UserNameAccount "`n" LenguajeList.Mensajes["TrayTip5"], 'Icons.dll|Icon4',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=3399ff Style=EDGE')
+									
+								DataSesion := ""
+								IniWrite DataSesion, "options.ini", "settings", "DataSesion"
+								
+								global EditUser
+								global DataPers 
+
+								if (EditUser != "" or DataPers != "")
+									A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerCuenta"])	
+								else
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])	
+		
+								A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
+								
+								UserNameAccount := ""
+							}
+							else
+							{
+								if NotiNormal
+									Notify.Show(LenguajeList.Mensajes["Msgbox6"], UserNameAccount "`n" LenguajeList.Mensajes["TrayTip6"], 'Icons.dll|Icon2',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=b10000 Style=EDGE')
+							}
+						}
+						catch
+						{
+							if NotiNormal
+							{
+								Notify.Show(LenguajeList.Mensajes["Msgbox6"], LenguajeList.Mensajes["TrayTip7"], 'Icons.dll|Icon2',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=b10000 Style=EDGE')
 							}
 						}
 					}
+					
 				}
 			}
 			else
@@ -1420,7 +1441,6 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 		}
 		else
 			WinActivate(PopupTittle)
-
 	}
 	else if (ItemName = LenguajeList.BarraMenu["Salir"])
 	{
@@ -1430,14 +1450,43 @@ MenuHandler(ItemName, ItemPos, MyMenu) {
 	}
 }
 
-
 if ActIni
 {
 	global actininorepeat := 1
-	MenuHandler(LenguajeList.BarraMenu["BuscarActualizacion"], 8, A_TrayMenu)
+	global EditConectado
+	DataEnv := EditConectado " 1 2"
+	
+	if !ProcessExist("PingHostName.exe")
+	{
+		try
+		{
+			Run "PingHostName.exe"
+			Prev_DetectHiddenWindows := A_DetectHiddenWindows 	
+			DetectHiddenWindows True
+			WinWait "ahk_exe PingHostName.exe",, 5000
+			DetectHiddenWindows Prev_DetectHiddenWindows
+		}
+		catch
+			exitapp
+	}
+			
+	if !ProcessExist("PingHostName.exe")
+		exitapp
+		
+	try
+		Ping := Send_WM_COPYDATA(DataEnv, "ahk_exe PingHostName.exe")
+
+	if (!isset(Ping) or (Ping != 0 and Ping != 1))
+		Ping := 0
+
+	if Ping
+		MenuHandler(LenguajeList.BarraMenu["BuscarActualizacion"], 10, A_TrayMenu)
+	
 }
 
 OnMessage( 0x200, WM_MOUSEMOVE ) 
+
+
 
 WM_MOUSEMOVE( wparam, lparam, msg, hwnd )
 {
@@ -1453,14 +1502,17 @@ WM_MOUSEMOVE( wparam, lparam, msg, hwnd )
 		
 }
 
+
 OnMessage(0x404, AHK_NOTIFYICON1)
+
 
 AHK_NOTIFYICON1(wParam, lParam, *) 
 {
-if (lParam = 0x203) { 
-		MenuHandler(LenguajeList.BarraMenu["Configuracion"], 8, A_TrayMenu)
+	if (lParam = 0x203) { 
+		MenuHandler(LenguajeList.BarraMenu["Configuracion"], 9, A_TrayMenu)
     }
 }
+
 
 OnMessage(0x404, AHK_NOTIFYICON)
 
@@ -1540,12 +1592,12 @@ AHK_NOTIFYICON(wParam, lParam, *)
 				}
 				
 				MouseGetPos &OutputVarX, &OutputVarY
-				sleep(1)
 			}
 		}
 	}
 }
-	
+
+
 if TimeRed
 {
 	global sockserver
@@ -1564,6 +1616,7 @@ if TimeRed
 		}
 	}
 }
+
 
 Settings(*)
 {	
@@ -1603,10 +1656,8 @@ Settings(*)
 	global EditNacional
 	global EditDesconectado
 	
-	global EditUser1
-	global EditPassword1
-	global EditUser2
-	global EditPassword2
+	global EditUser
+	global EditPassword
 	global DataPers
 	global EditDataPers
 	global EditPageLogin
@@ -1634,8 +1685,7 @@ Settings(*)
 	global NotiGifConectado
 	
 	global NotiNormal
-	
-	
+
 	global ConectadoGif 
 	global DesconocidoGif 
 	global DesconectadoGif
@@ -1709,8 +1759,6 @@ Settings(*)
 	global VoltearEntradaGif4
 	global VoltearSalidaGif4
 	
-	global UsarSegundaCuenta
-	
 	global LenguajeText
 	
 
@@ -1719,6 +1767,8 @@ Settings(*)
 	
 	global VolMusic
 	
+	global SaveAccounts
+	global SelectCuenta
 	
 	
 	;global TimeRedAdapters
@@ -1976,57 +2026,113 @@ Settings(*)
 
 	MyGui.Add("GroupBox","y" YMyGroupBoxGenerales " x" (XMyGroupBoxGenerales+WMyGroupBoxGenerales+MyGui.MarginX) " w260 h160 Section Center", LenguajeList.General["CuentaTexto1"])
 	
+	Cuentas := []
+	
+	ListCuentasCnfg := SaveAccounts
+
+	if (ListCuentasCnfg != "")
+	{
+		ListCuentas := StrSplit(RTrim(ListCuentasCnfg, A_Space "," A_Space), A_Space "," A_Space)
+		Loop ListCuentas.Length
+		{
+			Cuentas.InsertAt(0, StrSplit(ListCuentas[A_Index], A_Space "|" A_Space)[1])
+		}
+	}
+		
+
+	MyButtonAdd := MyGui.Add("Button", "Default xs+15 yp+25 w20", "+")
+	MyButtonAdd.OnEvent("Click", Gui_BAddAccount)
+	
+	MyButtonElim := MyGui.Add("Button", "Default xs+40 yp w20", "-")
+	MyButtonElim.OnEvent("Click", Gui_BElimAccount)
+	
+	MyDropDownListCuentas := MyGui.Add("DropDownList", "xs+65 yp+1 w180 vCuentas", Cuentas)
+	MyDropDownListCuentas.value := SelectCuenta
+	MyDropDownListCuentas.OnEvent("Change", GListCuentas)
+	
+	MyDropDownListCuentas.Enabled := 0
+
 	;////// [Usuario]
-	MyEditUserText := MyGui.Add("Text","xs+15 yp+25", LenguajeList.General["CuentaTexto2"])
-	MyEditUser := MyGui.Add("Edit","xp yp+18 w230 h22 vMyEditUser")
+	MyEditUserText := MyGui.Add("Text","xs+15 yp+45", LenguajeList.General["CuentaTexto2"])
+	MyEditUser := MyGui.Add("Edit","xs+63 yp-3 w182 h22 vMyEditUser")
 	MyEditUser.SetFont("cBlack")
 	
 	;//////
 	
 	
 	;////// [Contrasena]
-	MyEditPasswordText := MyGui.Add("Text","xp yp+30", LenguajeList.General["CuentaTexto3"])
-	MyEditPassword := MyGui.Add("Edit","xp w230 h22 vMyEditPassword Password")
+	MyEditPasswordText := MyGui.Add("Text","xs+15 yp+35", LenguajeList.General["CuentaTexto3"])
+	MyEditPassword := MyGui.Add("Edit","xs+80 yp-3 w165 h22 vMyEditPassword Password")
 	MyEditPassword.SetFont("cBlack")
 	
 	;//////
-	
-	;////// [UsarSegundaCuenta]
-	MyCheckUsarSegundaCuenta := MyGui.Add("Checkbox","xp y+15 vUsarSegundaCuenta", " ")
-	MyCheckUsarSegundaCuenta.value := UsarSegundaCuenta
-	MyCheckUsarSegundaCuenta.OnEvent("Click", GUsarSegundaCuenta1)
-	MyTextUsarSegundaCuenta := MyGui.Add("Text","yp x+-0.5", LenguajeList.General["CuentaTexto4"])
-	MyTextUsarSegundaCuenta.OnEvent("Click", GUsarSegundaCuenta)
-	
-	
-	GUsarSegundaCuenta(*)
-	{
-		if MyCheckUsarSegundaCuenta.value
-			MyCheckUsarSegundaCuenta.value := 0
-		else
-			MyCheckUsarSegundaCuenta.value := 1
-		
-		GUsarSegundaCuenta1
-	}
-	
-	GUsarSegundaCuenta1
-	
-	GUsarSegundaCuenta1(*)
-	{
-		if MyCheckUsarSegundaCuenta.value
-		{
-			MyEditUser.value := EditUser2
-			MyEditPassword.value := EditPassword2
-		}
-		else
-		{
-			MyEditUser.value := EditUser1
-			MyEditPassword.value := EditPassword1
-		}
-	}
-	
-	;//////
 
+	if (ListCuentasCnfg = "")
+	{
+		MyDropDownListCuentas.Enabled := 0
+	}
+	else
+	{
+		MyEditUser.value := MyDropDownListCuentas.Text
+		MyEditPassword.value := StrSplit(ListCuentas[MyDropDownListCuentas.Value], A_Space "|" A_Space)[2]
+	}
+	
+	Gui_BAddAccount(*)
+	{
+		if (MyEditUser.value != "" and MyEditPassword.value != "")
+		{
+			if !InStr(ListCuentasCnfg, MyEditUser.value A_Space "|" A_Space)
+			{ 
+				ListCuentasCnfg .= MyEditUser.value A_Space "|" A_Space MyEditPassword.value A_Space "," A_Space
+	
+				MyDropDownListCuentas.Add([MyEditUser.value])
+				MyDropDownListCuentas.Text := MyEditUser.value
+				if !MyDropDownListCuentas.Enabled
+					MyDropDownListCuentas.Enabled := 1
+			}
+		}
+	}
+	
+	Gui_BElimAccount(*)
+	{
+		if (MyDropDownListCuentas.value != 0)
+		{
+			ListCuentas := StrSplit(RTrim(ListCuentasCnfg, A_Space "," A_Space), A_Space "," A_Space)
+			ListCuentasCnfg := StrReplace(ListCuentasCnfg, ListCuentas[MyDropDownListCuentas.value] A_Space "," A_Space)
+			MyDropDownListCuentas.Delete(MyDropDownListCuentas.value)
+			
+			try
+			{
+				MyDropDownListCuentas.Choose(1)
+				GListCuentas
+			}
+			catch
+				MyDropDownListCuentas.Enabled := 0
+			
+		}
+	}
+	
+	GListCuentas(*)
+	{
+		if (MyDropDownListCuentas.Value != 0)
+		{
+			MyEditUser.value := MyDropDownListCuentas.Text
+			
+			FoundInit := InStr(ListCuentasCnfg, MyDropDownListCuentas.Text) + StrLen(MyDropDownListCuentas.Text) + 3
+
+			MyEditPassword.value := SubStr(ListCuentasCnfg, FoundInit, InStr(ListCuentasCnfg, A_Space "," A_Space, , FoundInit)-FoundInit)
+		}
+		else
+		{
+			MyEditUser.value := ""
+			MyEditPassword.value := ""
+			
+		}
+		
+	}
+
+	;//////
+	
 	
 	;////////////////////////  GroupBox [Eventos]
 	
@@ -2042,10 +2148,7 @@ Settings(*)
 	if DirExist(SoundFilesPath)
 	{ 
 		Loop Files SoundFilesPath "\*.wav*"
-		{
 			MySound.InsertAt(0, A_LoopFileName) 
-			sleep(1)
-		}
 	}
 	else
 	    DirCreate SoundFilesPath
@@ -2074,7 +2177,7 @@ Settings(*)
 	MyTextGIF.SetFont("underline")
 	MyTextGIF.OnEvent("Click", GMyTextGIF)
 	
-	MyTextWindows := MyGui.Add("Text","xs170 yp", LenguajeList.General["NotificacionesTexto3"])
+	MyTextWindows := MyGui.Add("Text","xs178 yp", LenguajeList.General["NotificacionesTexto3"])
 	MyTextWindows.SetFont("underline")
 	MyTextWindows.OnEvent("Click", GMyTextWindows)
 
@@ -2095,7 +2198,7 @@ Settings(*)
 	MyCheckNotiConectadoText := MyGui.Add("Text","xs+15 yp+20", LenguajeList.General["NotificacionesTexto5"])
 	MyCheckNotiGifConectado := MyGui.Add("Checkbox","xs+121 yp vNotiGifConectado", " ")
 	MyCheckNotiGifConectado.value := NotiGifConectado
-	MyCheckNotiConectado := MyGui.Add("Checkbox","xs+181 yp vConectado", " ")
+	MyCheckNotiConectado := MyGui.Add("Checkbox","xs+191 yp vConectado", " ")
 	MyCheckNotiConectado.value := NotiConectado
 	MyDropDownListSoundConectadoNum := MyGui.Add("DropDownList", "xs+101 yp-5 w65 vSoundConectado", MySound)
 	MyDropDownListSoundConectadoNum.Value := SoundConectadoNum
@@ -2110,7 +2213,7 @@ Settings(*)
 	MyCheckNotiNacionalText := MyGui.Add("Text","xs+15 yp+28", LenguajeList.General["NotificacionesTexto6"])
 	MyCheckNotiGifNacional := MyGui.Add("Checkbox","xs+121 yp vNotiGifNacional", " ")
 	MyCheckNotiGifNacional.value := NotiGifNacional
-	MyCheckNotiNacional := MyGui.Add("Checkbox","xs+181 yp vNacional", " ")
+	MyCheckNotiNacional := MyGui.Add("Checkbox","xs+191 yp vNacional", " ")
 	MyCheckNotiNacional.value := NotiNacional
 	MyDropDownListSoundNacionalNum := MyGui.Add("DropDownList", "xs+101 yp-5 w65 vSoundNacional", MySound)
 	MyDropDownListSoundNacionalNum.Value := SoundNacionalNum
@@ -2125,7 +2228,7 @@ Settings(*)
 	MyCheckNotiDesconectadoText := MyGui.Add("Text","xs+15 yp+28", LenguajeList.General["NotificacionesTexto7"])
 	MyCheckNotiGifDesconectado := MyGui.Add("Checkbox","xs+121 yp vNotiGifDesconectado", " ")
 	MyCheckNotiGifDesconectado.value := NotiGifDesconectado
-	MyCheckNotiDesconectado := MyGui.Add("Checkbox","xs+181 yp vDesconectado", " ")
+	MyCheckNotiDesconectado := MyGui.Add("Checkbox","xs+191 yp vDesconectado", " ")
 	MyCheckNotiDesconectado.value := NotiDesconectado
 	MyDropDownListSoundDesconectadoNum := MyGui.Add("DropDownList", "xs+101 yp-5 w65 vSoundDesconectado", MySound)
 	MyDropDownListSoundDesconectadoNum.Value := SoundDesconectadoNum
@@ -2140,7 +2243,7 @@ Settings(*)
 	MyCheckNotiErrorText := MyGui.Add("Text","xs+15 yp+28", LenguajeList.General["NotificacionesTexto8"])
 	MyCheckNotiGifError := MyGui.Add("Checkbox","xs+121 yp vNotiGifError", " ")
 	MyCheckNotiGifError.value := NotiGifError
-	MyCheckNotiError := MyGui.Add("Checkbox","xs+181 yp vNotiError", " ")
+	MyCheckNotiError := MyGui.Add("Checkbox","xs+191 yp vNotiError", " ")
 	MyCheckNotiError.value := NotiError
 	MyDropDownListSoundErrorNum := MyGui.Add("DropDownList", "xs+101 yp-5 w65 vSoundError", MySound)
 	MyDropDownListSoundErrorNum.Value := SoundErrorNum
@@ -2524,6 +2627,9 @@ Settings(*)
 	{
 		if MyCheckDataPers.Value
 		{
+			MyDropDownListCuentas.Enabled := 0
+			MyButtonElim.Enabled := 0
+			MyButtonAdd.Enabled := 0
 			MyEditUser.Enabled := 0
 			MyEditPassword.Enabled := 0
 			
@@ -2531,6 +2637,10 @@ Settings(*)
 		}
 		else
 		{
+			if (ListCuentasCnfg != "")
+				MyDropDownListCuentas.Enabled := 1
+			MyButtonElim.Enabled := 1
+			MyButtonAdd.Enabled := 1
 			MyEditUser.Enabled := 1
 			MyEditPassword.Enabled := 1
 			
@@ -3595,6 +3705,15 @@ Settings(*)
 				MyEditUser.Enabled := 1
 				MyEditPassword.value := ""
 				MyEditPassword.Enabled := 1
+				
+				MyDropDownListCuentas.Enabled := 0
+				MyButtonElim.Enabled := 1
+				MyButtonAdd.Enabled := 1
+				
+				ListCuentasCnfg := ""
+				
+				MyDropDownListCuentas.Delete()
+			
 				MyCheckDataPers.Value := 0
 				MyEditDataPers.value := "username=usuario&password=contraseña"
 				MyEditDataPers.Enabled := 0
@@ -3632,8 +3751,6 @@ Settings(*)
 				
 				MyCheckVoltearEntradaGif.value := 0
 				MyCheckVoltearSalidaGif.value := 0
-				
-				MyCheckUsarSegundaCuenta.value := 0
 				
 				MyUpDownRetrasoError.value := 0
 				MyUpDownRetrasoDesconectado.value := 0
@@ -3719,23 +3836,54 @@ Settings(*)
 		global RetrasoDesconectado := SaveData.RetrasoDesconectado
 		global RetrasoError := SaveData.RetrasoError
 		
-		global UsarSegundaCuenta := SaveData.UsarSegundaCuenta
-		
-		global EditUser1
-		global EditPassword1
-		global EditUser2
-		global EditPassword2
-		
-		if UsarSegundaCuenta
+		global SelectCuenta := MyDropDownListCuentas.value
+
+		if (MyEditUser.value != "" and MyEditPassword.value != "")
 		{
-			global EditUser2 := SaveData.MyEditUser 
-			global EditPassword2 := SaveData.MyEditPassword 
+			ListCuentas := StrSplit(RTrim(ListCuentasCnfg, A_Space "," A_Space), A_Space "," A_Space)
+			ListCuentasCnfgPrev := StrReplace(ListCuentasCnfg, ListCuentas[SelectCuenta] A_Space "," A_Space, MyEditUser.value A_Space "|" A_Space MyEditPassword.value A_Space "," A_Space)
+			
+			StrReplace(ListCuentasCnfg, MyEditUser.value A_Space "|" A_Space, , , &OutputVarCount)
+			if (!InStr(ListCuentasCnfg, MyEditUser.value A_Space "|" A_Space) or OutputVarCount = 1)
+			{ 
+				global EditUser := SaveData.MyEditUser 
+				global EditPassword := SaveData.MyEditPassword
+
+				ListCuentasCnfg := ListCuentasCnfgPrev
+				
+				if (EditUser != MyDropDownListCuentas.Text)
+				{
+					MyDropDownListCuentas.Delete()
+					
+					Cuentas := []
+	
+					ListCuentas := StrSplit(RTrim(ListCuentasCnfg, A_Space "," A_Space), A_Space "," A_Space)
+					Loop ListCuentas.Length
+					{
+						Cuentas.InsertAt(0, StrSplit(ListCuentas[A_Index], A_Space "|" A_Space)[1])
+					}
+					
+					MyDropDownListCuentas.Add(Cuentas)
+					MyDropDownListCuentas.Text := EditUser
+				}
+			}
 		}
-		else
+		
+		global SaveAccounts := ListCuentasCnfg
+		
+		global Submenu
+		Submenu.Delete()
+		
+		ListCuentas := StrSplit(RTrim(ListCuentasCnfg, A_Space "," A_Space), A_Space "," A_Space)
+		Loop ListCuentas.Length
 		{
-			global EditUser1 := SaveData.MyEditUser 
-			global EditPassword1 := SaveData.MyEditPassword 
+			NameSub := StrSplit(ListCuentas[A_Index], A_Space "|" A_Space)
+			Submenu.Add(NameSub[1], MenuHandlerAccount)
+			if (A_Index = SelectCuenta)
+				Submenu.Check(NameSub[1])
 		}
+		
+	
 		global DataPers := SaveData.MyDataPers
 		global EditDataPers := SaveData.MyEditDataPers 
 		global EditPageLogin := SaveData.MyEditPageLogin
@@ -4213,145 +4361,18 @@ Settings(*)
 		DllCall(SetPreferredAppMode, "int", DarkMode) ; Dark
 		DllCall(FlushMenuThemes)
 		
+		
 		options := "[settings]`n"
-		options .= "IniciarConWindows=" SaveData.initialize "`n"
-		options .= "ActIni=" SaveData.ActIni "`n"
-		options .= "DarkMode=" SaveData.DarkMode "`n"
-		options .= "AbrirWebAlConectarse=" SaveData.webopenAlConectarse "`n"
-		options .= "WebAlConectarse=" SaveData.MyEditWebAlConectarse "`n"
-		options .= "AbrirWebAlDesconocer=" SaveData.webopenAlDesconocer "`n"
-		options .= "WebAlDesconocer=" SaveData.MyEditWebAlDesconocer "`n"
-		options .= "AbrirWebAlDesconectarse=" SaveData.webopenAlDesconectarse "`n"
-		options .= "WebAlDesconectarse=" SaveData.MyEditWebAlDesconectarse "`n"
-		options .= "AbrirWebAlError=" SaveData.webopenAlError "`n"
-		options .= "WebAlError=" SaveData.MyEditWebAlError "`n"
-		options .= "WebOption=" SaveData.MyCheckWebOption "`n"
-		options .= "VerificarConxCada=" SaveData.MyUpDown "`n"
-		options .= "VerificarConx=" SaveData.MyUpDownConx "`n"
-		options .= "NotiConectado=" SaveData.Conectado "`n"
-		options .= "NotiNacional=" SaveData.Nacional "`n"
-		options .= "NotiDesconectado=" SaveData.Desconectado "`n"
-		options .= "NotiError=" SaveData.NotiError "`n"
-		options .= "SoundConectado=" SaveData.SoundConectado "`n"
-		options .= "SoundNacional=" SaveData.SoundNacional "`n"
-		options .= "SoundDesconectado=" SaveData.SoundDesconectado  "`n"
-		options .= "SoundError=" SaveData.SoundError "`n"
-		options .= "EditConectado=" SaveData.MyEditConectado "`n"
-		options .= "EditNacional=" SaveData.MyEditNacional "`n"
-		options .= "EditDesconectado=" SaveData.MyEditDesconectado "`n"
-		options .= "EditUser1=" EditUser1 "`n"
-		options .= "EditPassword1=" EditPassword1 "`n"
-		options .= "EditUser2=" EditUser2 "`n"
-		options .= "EditPassword2=" EditPassword2 "`n"
-		options .= "DataPers=" SaveData.MyDataPers "`n"
-		options .= "EditDataPers=" SaveData.MyEditDataPers "`n"
-		options .= "EditPageLogin=" SaveData.MyEditPageLogin "`n"
-		options .= "WebOffAccount=" SaveData.MyWebOffAccount "`n"
-		options .= "EditWebOffAccount=" SaveData.MyEditWebOffAccount "`n"
-		options .= "IniFileReadTime=" SaveData.MyIniFileReadTime "`n"
-		options .= "EditIniFileReadTime=" SaveData.MyEditIniFileReadTime "`n"
-		options .= "WebConectado=" SaveData.MyCheckConectado "`n"
-		options .= "WebDesconocido=" SaveData.MyCheckDesconocido "`n"
-		options .= "WebDesconectado=" SaveData.MyCheckDesconectado "`n"
-		options .= "VerificarPingCada=" SaveData.MyUpDownVerificarPingCada "`n"
-		options .= "TemporizadorH=" SaveData.TemporizadorH "`n"
-		options .= "TemporizadorM=" SaveData.TemporizadorM "`n"
-		options .= "TemporizadorS=" SaveData.TemporizadorS "`n"
-		options .= "TemporizadorNotiIcon=" SaveData.TempNotiIcon "`n"
-		options .= "TemporizadorNotiTooltip=" SaveData.TempNotiTooltip "`n"
-		options .= "TemporizadorNotiWindows=" SaveData.TempNotiWindows "`n"
-		options .= "NotiGifError=" SaveData.NotiGifError  "`n"
-		options .= "NotiGifDesconectado=" SaveData.NotiGifDesconectado "`n"
-		options .= "NotiGifNacional=" SaveData.NotiGifNacional "`n"
-		options .= "NotiGifConectado=" SaveData.NotiGifConectado "`n"
-		options .= "NotiNormal=" SaveData.NotiNormal "`n"
-		options .= "ConectadoGif=" SaveData.ConectadoGif "`n"
-		options .= "DesconocidoGif=" SaveData.DesconocidoGif "`n"
-		options .= "DesconectadoGif=" SaveData.DesconectadoGif "`n"
-		options .= "ErrorGif=" SaveData.ErrorGif "`n"
 		
-		options .= "PosVGif1=" PosVGif1 "`n"
-		options .= "TamanodelGif1=" TamanodelGif1 "`n"
-		options .= "AnchoGif1=" AnchoGif1 "`n"
-		options .= "LargoGif1=" LargoGif1 "`n"
-		options .= "RelacionGif1=" RelacionGif1 "`n"
-		options .= "EfectoEntradaGif1=" EfectoEntradaGif1 "`n"
-		options .= "UpDownEfectoEntradaGif1=" UpDownEfectoEntradaGif1 "`n"
-		options .= "UpDownTiempoEntradaGif1=" UpDownTiempoEntradaGif1 "`n"
-		options .= "EfectoSalidaGif1=" EfectoSalidaGif1 "`n"
-		options .= "UpDownEfectoSalidaGif1=" UpDownEfectoSalidaGif1 "`n"
-		options .= "GifSelected1=" GifSelected1 "`n"
-		options .= "GifSelectedText1=" GifSelectedText1 "`n"
-		options .= "BarradeTareasGif1=" BarradeTareasGif1 "`n"
+		SettingsSave := ["IniciarConWindows", "ActIni", "DarkMode", "AbrirWebAlConectarse", "WebAlConectarse", "AbrirWebAlDesconocer", "WebAlDesconocer", "AbrirWebAlDesconectarse", "WebAlDesconectarse", "AbrirWebAlError", "WebAlError", "WebOption", "VerificarConxCada", "VerificarConx", "NotiConectado", "NotiNacional", "NotiDesconectado", "NotiError", "SoundConectado", "SoundNacional", "SoundDesconectado", "SoundError", "EditConectado", "EditNacional", "EditDesconectado", "EditUser", "EditPassword", "DataPers", "EditDataPers", "EditPageLogin", "WebOffAccount", "EditWebOffAccount", "IniFileReadTime", "EditIniFileReadTime", "WebConectado", "WebDesconocido", "WebDesconectado", "VerificarPingCada", "TemporizadorH", "TemporizadorM", "TemporizadorS", "TemporizadorNotiIcon", "TemporizadorNotiTooltip", "TemporizadorNotiWindows", "NotiGifError", "NotiGifDesconectado", "NotiGifNacional", "NotiGifConectado", "NotiNormal", "ConectadoGif", "DesconocidoGif", "DesconectadoGif", "ErrorGif", "PosVGif1", "TamanodelGif1", "AnchoGif1", "LargoGif1", "RelacionGif1", "EfectoEntradaGif1", "UpDownEfectoEntradaGif1", "UpDownTiempoEntradaGif1", "EfectoSalidaGif1", "UpDownEfectoSalidaGif1", "GifSelected1", "GifSelectedText1", "BarradeTareasGif1", "PosVGif2", "TamanodelGif2", "AnchoGif2", "LargoGif2", "RelacionGif2", "EfectoEntradaGif2", "UpDownEfectoEntradaGif2", "UpDownTiempoEntradaGif2", "EfectoSalidaGif2", "UpDownEfectoSalidaGif2", "GifSelected2", "GifSelectedText2", "BarradeTareasGif2", "PosVGif3", "TamanodelGif3", "AnchoGif3", "LargoGif3", "RelacionGif3", "EfectoEntradaGif3", "UpDownEfectoEntradaGif3", "UpDownTiempoEntradaGif3", "EfectoSalidaGif3", "UpDownEfectoSalidaGif3", "GifSelected3", "GifSelectedText3", "BarradeTareasGif3", "PosVGif4", "TamanodelGif4", "AnchoGif4", "LargoGif4", "RelacionGif4", "EfectoEntradaGif4", "UpDownEfectoEntradaGif4", "UpDownTiempoEntradaGif4", "EfectoSalidaGif4", "UpDownEfectoSalidaGif4", "GifSelected4", "GifSelectedText4", "BarradeTareasGif4", "VoltearEntradaGif1", "VoltearSalidaGif1", "VoltearEntradaGif2", "VoltearSalidaGif2", "VoltearEntradaGif3", "VoltearSalidaGif3", "VoltearEntradaGif4", "VoltearSalidaGif4", "LenguajeText", "DataSesion", "RetrasoConectado", "RetrasoNacional", "RetrasoDesconectado", "RetrasoError", "ServerOnPort", "TimeRed", "VolMusic", "SaveAccounts", "SelectCuenta"]
 		
-		options .= "PosVGif2=" PosVGif2 "`n"
-		options .= "TamanodelGif2=" TamanodelGif2 "`n"
-		options .= "AnchoGif2=" AnchoGif2 "`n"
-		options .= "LargoGif2=" LargoGif2 "`n"
-		options .= "RelacionGif2=" RelacionGif2 "`n"
-		options .= "EfectoEntradaGif2=" EfectoEntradaGif2 "`n"
-		options .= "UpDownEfectoEntradaGif2=" UpDownEfectoEntradaGif2 "`n"
-		options .= "UpDownTiempoEntradaGif2=" UpDownTiempoEntradaGif2 "`n"
-		options .= "EfectoSalidaGif2=" EfectoSalidaGif2 "`n"
-		options .= "UpDownEfectoSalidaGif2=" UpDownEfectoSalidaGif2 "`n"
-		options .= "GifSelected2=" GifSelected2 "`n"
-		options .= "GifSelectedText2=" GifSelectedText2 "`n"
-		options .= "BarradeTareasGif2=" BarradeTareasGif2 "`n"
+		For a in SettingsSave
+		{
+			options .= a "=" %a% "`n"
+		}
 		
-		options .= "PosVGif3=" PosVGif3 "`n"
-		options .= "TamanodelGif3=" TamanodelGif3 "`n"
-		options .= "AnchoGif3=" AnchoGif3 "`n"
-		options .= "LargoGif3=" LargoGif3 "`n"
-		options .= "RelacionGif3=" RelacionGif3 "`n"
-		options .= "EfectoEntradaGif3=" EfectoEntradaGif3 "`n"
-		options .= "UpDownEfectoEntradaGif3=" UpDownEfectoEntradaGif3 "`n"
-		options .= "UpDownTiempoEntradaGif3=" UpDownTiempoEntradaGif3 "`n"
-		options .= "EfectoSalidaGif3=" EfectoSalidaGif3 "`n"
-		options .= "UpDownEfectoSalidaGif3=" UpDownEfectoSalidaGif3 "`n"
-		options .= "GifSelected3=" GifSelected3 "`n"
-		options .= "GifSelectedText3=" GifSelectedText3 "`n"
-		options .= "BarradeTareasGif3=" BarradeTareasGif3 "`n"
+		options := RTrim(options, "`n")
 
-		options .= "PosVGif4=" PosVGif4 "`n"
-		options .= "TamanodelGif4=" TamanodelGif4 "`n"
-		options .= "AnchoGif4=" AnchoGif4 "`n"
-		options .= "LargoGif4=" LargoGif4 "`n"
-		options .= "RelacionGif4=" RelacionGif4 "`n"
-		options .= "EfectoEntradaGif4=" EfectoEntradaGif4 "`n"
-		options .= "UpDownEfectoEntradaGif4=" UpDownEfectoEntradaGif4 "`n"
-		options .= "UpDownTiempoEntradaGif4=" UpDownTiempoEntradaGif4 "`n"
-		options .= "EfectoSalidaGif4=" EfectoSalidaGif4 "`n"
-		options .= "UpDownEfectoSalidaGif4=" UpDownEfectoSalidaGif4 "`n"
-		options .= "GifSelected4=" GifSelected4 "`n"
-		options .= "GifSelectedText4=" GifSelectedText4 "`n"
-		options .= "BarradeTareasGif4=" BarradeTareasGif4 "`n"
-		
-		options .= "VoltearEntradaGif1=" VoltearEntradaGif1 "`n"
-		options .= "VoltearSalidaGif1=" VoltearSalidaGif1 "`n"
-		
-		options .= "VoltearEntradaGif2=" VoltearEntradaGif2 "`n"
-		options .= "VoltearSalidaGif2=" VoltearSalidaGif2 "`n"
-		
-		options .= "VoltearEntradaGif3=" VoltearEntradaGif3 "`n"
-		options .= "VoltearSalidaGif3=" VoltearSalidaGif3 "`n"
-		
-		options .= "VoltearEntradaGif4=" VoltearEntradaGif4 "`n"
-		options .= "VoltearSalidaGif4=" VoltearSalidaGif4 "`n"
-		options .= "UsarSegundaCuenta=" SaveData.UsarSegundaCuenta "`n"
-		options .= "LenguajeText=" LenguajeText "`n"
-		options .= "DataSesion=" DataSesion "`n"
-		
-		options .= "RetrasoConectado=" SaveData.RetrasoConectado "`n"
-		options .= "RetrasoNacional=" SaveData.RetrasoNacional "`n"
-		options .= "RetrasoDesconectado=" SaveData.RetrasoDesconectado "`n"
-		options .= "RetrasoError=" SaveData.RetrasoError "`n"
-		
-		options .= "ServerOnPort=" ServerOnPort "`n"
-		options .= "TimeRed=" SaveData.TimeRed "`n"
-		options .= "VolMusic=" SaveData.MySlider
-		;options .= "TimeRedAdapters=" SaveData.TimeRedAdapters "`n"
-		;options .= "IPAddOrRemove=" IPAddOrRemove
-		
 		if FileExist("options.ini")
 			FileDelete "options.ini"	
 
@@ -4677,190 +4698,126 @@ VerefyConx()
 		{
 			For w in Webs
 			{
-				IpResolve := "Failed"
-				IpResolve := ResolveHostname(w)
-				if(IpResolve != "Failed")
+				DataEnv := w " " VerificarPingCada " " VerificarConx
+				
+				if !ProcessExist("PingHostName.exe")
 				{
-					DataEnv := IpResolve " " VerificarPingCada " " VerificarConx
-					
-					if !ProcessExist("PingHostName.exe")
-					{
-						try
-						{
-							Run "PingHostName.exe"
-							Prev_DetectHiddenWindows := A_DetectHiddenWindows
-							DetectHiddenWindows True
-							timeleft := 0
-							while (!WinExist("ahk_exe PingHostName.exe") and timeleft < 5000)
-							{
-								timeleft += 10
-								sleep(10)
-							}
-							DetectHiddenWindows Prev_DetectHiddenWindows  ; Restore original setting for the caller.
-						}
-						catch
-							exitapp
-					}
-							
-					if !ProcessExist("PingHostName.exe")
-						exitapp
-					  
 					try
-						Ping := Send_WM_COPYDATA(DataEnv, "ahk_exe PingHostName.exe")
-						
-					if (Ping != 0 and Ping != 1)
-						Ping := 0
-
-					if Ping
 					{
-						if (w != EditDesconectado)
+						Run "PingHostName.exe"
+						Prev_DetectHiddenWindows := A_DetectHiddenWindows 	
+						DetectHiddenWindows True
+						WinWait "ahk_exe PingHostName.exe",, 5000
+						DetectHiddenWindows Prev_DetectHiddenWindows
+					}
+					catch
+						exitapp
+				}
+						
+				if !ProcessExist("PingHostName.exe")
+					exitapp
+				  
+				try
+					Ping := Send_WM_COPYDATA(DataEnv, "ahk_exe PingHostName.exe")
+					
+				if (!isset(Ping) or (Ping != 0 and Ping != 1))
+					Ping := 0
+
+				if Ping
+				{
+					if (w != EditDesconectado)
+					{
+						if (w = EditConectado)
+							ConectStatus := 1
+						else
+							ConectStatus := 0
+							
+						if ((ConectStatus and A_IconNumber != 5 and A_IconNumber != 6 and A_IconNumber != 7 and A_IconNumber != 8 and A_IconNumber != 9 and A_IconNumber != 10) or (!ConectStatus and A_IconNumber != 4 and A_IconNumber != 11 and A_IconNumber != 12 and A_IconNumber != 13 and A_IconNumber != 14 and A_IconNumber != 15))
 						{
-							if (w = EditConectado)
-								ConectStatus := 1
-							else
-								ConectStatus := 0
-								
-							if ((ConectStatus and A_IconNumber != 5 and A_IconNumber != 6 and A_IconNumber != 7 and A_IconNumber != 8 and A_IconNumber != 9 and A_IconNumber != 10) or (!ConectStatus and A_IconNumber != 4 and A_IconNumber != 11 and A_IconNumber != 12 and A_IconNumber != 13 and A_IconNumber != 14 and A_IconNumber != 15))
+							If ConectStatus
 							{
-								If ConectStatus
-								{
-									try
-										TraySetIcon("Icons.dll", 5) ;8
-										
-									A_TrayMenu.Enable(LenguajeList.BarraMenu["BuscarActualizacion"])
-										
-									A_IconTip := LenguajeList.Mensajes["IconTip5"]
-								}
-								else
-								{
-									try
-										TraySetIcon("Icons.dll", 4) ;9
-										
-									A_TrayMenu.Disable(LenguajeList.BarraMenu["BuscarActualizacion"])
+								try
+									TraySetIcon("Icons.dll", 5) ;8
 									
-									A_IconTip := LenguajeList.Mensajes["IconTip6"]
-								}
+								A_TrayMenu.Enable(LenguajeList.BarraMenu["BuscarActualizacion"])
+									
+								A_IconTip := LenguajeList.Mensajes["IconTip5"]
+							}
+							else
+							{
+								try
+									TraySetIcon("Icons.dll", 4) ;9
+									
+								A_TrayMenu.Disable(LenguajeList.BarraMenu["BuscarActualizacion"])
 								
-								A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])
+								A_IconTip := LenguajeList.Mensajes["IconTip6"]
+							}
+							
+							A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])
+							
+							if !IniFileReadTime
+							{	
+								if (DataSesion = "")
+									DataSesion := IniRead("options.ini", "settings", "DataSesion")	
 								
-								if !IniFileReadTime
-								{	
-									if (DataSesion = "")
-										DataSesion := IniRead("options.ini", "settings", "DataSesion")	
-									
-									if (DataSesion != "")
-									{
-										IpResolveEtecsa := "Failed"
-										IpResolveEtecsa := ResolveHostname("secure.etecsa.net")
-										
-										if(IpResolveEtecsa != "Failed")
-										{	
-											DataEnv := IpResolveEtecsa " " VerificarPingCada " " VerificarConx
-
-											if !ProcessExist("PingHostName.exe")
-											{
-												try
-												{
-													Run "PingHostName.exe"
-													Prev_DetectHiddenWindows := A_DetectHiddenWindows
-													DetectHiddenWindows True
-													timestart := A_TickCount
-													while (!WinExist("ahk_exe PingHostName.exe") and (A_TickCount - timestart) < 5000)
-														sleep(10)
-													
-													DetectHiddenWindows Prev_DetectHiddenWindows  ; Restore original setting for the caller.
-												}
-												catch
-													exitapp
-											}
-													
-											if !ProcessExist("PingHostName.exe")
-												exitapp
-												
-											PingEtecsa := 0
-
-											try
-												PingEtecsa := Send_WM_COPYDATA(DataEnv, "ahk_exe PingHostName.exe")
-												
-											if (PingEtecsa != 0 and PingEtecsa != 1)
-												PingEtecsa := 0
-
-											If PingEtecsa
-											{
-												try
-												{
-													requestdata := "op=getLeftTime&" DataSesion
-													whr := ComObject("WinHttp.WinHttpRequest.5.1")
-													whr.Open("POST", "https://secure.etecsa.net:8443/EtecsaQueryServlet")
-													whr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-													whr.Send(requestdata)
-													
-													if (whr.ResponseText = "errorop")
-													{
-														DataSesion := ""
-														IniWrite DataSesion, "options.ini", "settings", "DataSesion"
-														StartTime := 0
-													}
-													else
-													{
-														StartTime := A_TickCount
-														global aTimeTimeAccount := A_Hour * 3600 + A_Min * 60 + A_Sec
-														
-														If ConectStatus
-															A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
-														else
-															A_IconTip := LenguajeList.Mensajes["IconTip6"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
-														
-														aTime := StrSplit(whr.ResponseText, ":")
-														TimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
-														
-														if TimeRed
-														{
-															global OnAccountSendData := 1
-															global sockserver
-															global ServerOnPort
-															msgtosend := UserNameAccount ";" TimeAccount ";" aTimeTimeAccount
-															respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
-															respsize := StrPut(msgtosend, respbuf, Encoding)
-															sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
-														}
-													}
-												}
-											}
-										}
-									}
-									else
-										StartTime := 0
-								} 
-								else
+								if (DataSesion != "")
 								{
-									;ftp://invitado:invitado@192.168.20.1/InternetAccount.ini
-									try
-										Download EditIniFileReadTime, "InternetAccount.ini"
-									
-									try
+									DataEnv := "secure.etecsa.net " VerificarPingCada " " VerificarConx
+
+									if !ProcessExist("PingHostName.exe")
 									{
-										if FileExist("InternetAccount.ini")
+										try
 										{
-											UserNameAccount := IniRead("InternetAccount.ini", "Info", "Cuenta")
-											Saldo := IniRead("InternetAccount.ini", "Info", "Saldo")
-											Factor := IniRead("InternetAccount.ini", "Info", "FactorHoras")
-											TimeIs := IniRead("InternetAccount.ini", "Info", "Hora")
-											Tiempo := Integer((Saldo/Factor)*3600)
+											Run "PingHostName.exe"
+											Prev_DetectHiddenWindows := A_DetectHiddenWindows 	
+											DetectHiddenWindows True
+											WinWait "ahk_exe PingHostName.exe",, 5000
+											DetectHiddenWindows Prev_DetectHiddenWindows
+										}
+										catch
+											exitapp
+									}
+											
+									if !ProcessExist("PingHostName.exe")
+										exitapp
+										
+									PingEtecsa := 0
 
-											if (TimeIs != "0")
-											{	
-												aTime := StrSplit(TimeIs, ":")
-												global aTimeTimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
-												aTimeTimeAccount1 := A_Hour * 3600 + A_Min * 60 + A_Sec
+									try
+										PingEtecsa := Send_WM_COPYDATA(DataEnv, "ahk_exe PingHostName.exe")
+										
+									if (!isset(PingEtecsa) or (PingEtecsa != 0 and PingEtecsa != 1))
+										PingEtecsa := 0
+
+									If PingEtecsa
+									{
+										try
+										{
+											requestdata := "op=getLeftTime&" DataSesion
+											whr := ComObject("WinHttp.WinHttpRequest.5.1")
+											whr.Open("POST", "https://secure.etecsa.net:8443/EtecsaQueryServlet")
+											whr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+											whr.Send(requestdata)
+											
+											if (whr.ResponseText = "errorop")
+											{
+												DataSesion := ""
+												IniWrite DataSesion, "options.ini", "settings", "DataSesion"
+												StartTime := 0
+											}
+											else
+											{
 												StartTime := A_TickCount
+												global aTimeTimeAccount := A_Hour * 3600 + A_Min * 60 + A_Sec
 												
-												RestSec := aTimeTimeAccount1 - aTimeTimeAccount
-
-												Tiempo := (Tiempo - RestSec)
+												If ConectStatus
+													A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
+												else
+													A_IconTip := LenguajeList.Mensajes["IconTip6"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " whr.ResponseText
 												
-												TimeAccount := Tiempo 
-
+												aTime := StrSplit(whr.ResponseText, ":")
+												TimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
+												
 												if TimeRed
 												{
 													global OnAccountSendData := 1
@@ -4872,464 +4829,500 @@ VerefyConx()
 													sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
 												}
 											}
-											
-											
-											Horas := Tiempo//3600 ":" FormatTime(DateAdd(19990101, Tiempo, "Seconds"), "mm:ss")
-											If ConectStatus
-												A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " Horas
-											else
-												A_IconTip := LenguajeList.Mensajes["IconTip6"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " Horas
-														
-											FileDelete "InternetAccount.ini"
 										}
-									}
-								}
-								
-
-								if WebOffAccount
-									A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
-								else if (DataSesion = "")
-									A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
-								else
-									A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
-									
-								
-								if !Temporizador
-								{
-									if (TemporizadorH = 0 and TemporizadorM = 0 and TemporizadorS = 0)
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-									else
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
-									A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
+									}		
 								}
 								else
-								{
-									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-									A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
-								}
-										
-									
-								If ConectStatus
-								{
-									if AbrirWebAlConectarse
-									{
-										if (WebAlConectarse != "")
-										{
-											WebVerify := StrSplit(WebAlConectarse, [":", "."])
-											if (WebVerify[1] == "https" or WebVerify[1] == "http" or WebVerify[1] == "www")
-												WebPageVisit := WebAlConectarse
-											else
-												WebPageVisit := "https://" WebAlConectarse
-												
-											if WebOption
-											{
-												if (!IsSet(WebAlreadyAlConectarse) or !ProcessExist(WebAlreadyAlConectarse))
-												{
-													Run WebPageVisit,,,&OutputVarPID
-													ProcessName := ProcessGetName(OutputVarPID)
-													WebAlreadyAlConectarse := ProcessName
-												}
-											}
-											else
-												Run WebPageVisit	
-										}
-									}
-								} 
-								else
-								{
-									if AbrirWebAlDesconocer
-									{
-										if (WebAlDesconocer != "")
-										{
-											WebVerify := StrSplit(WebAlDesconocer, [":", "."])
-											if (WebVerify[1] == "https" or WebVerify[1] == "http" or WebVerify[1] == "www")
-												WebPageVisit := WebAlDesconocer
-											else
-												WebPageVisit := "https://" WebAlDesconocer
-												
-											if WebOption
-											{
-												if (!IsSet(WebAlreadyAlDesconocer) or !WinExist(WebAlreadyAlDesconocer))
-												{
-													Run WebPageVisit,,,&OutputVarPID
-													ProcessName := ProcessGetName(OutputVarPID)
-													WebAlreadyAlDesconocer := ProcessName
-												}
-											}
-											else
-												Run WebPageVisit	
-										}
-									}
-								}
-
-								if ((NotiConectado and ConectStatus) or (NotiNacional and !ConectStatus))
-									TrayTip A_IconTip,, "Mute"
-								
-								if ConectStatus
-								{
-									if (SoundConectado != "none")
-									{
-										soundtoplayretraso := SoundToPlay.Bind(SoundConectado)
-										global RetrasoConectado
-										if (RetrasoConectado = 0)
-											retraso := -1
-										else
-											retraso := (RetrasoConectado * -1)
-									
-										SetTimer soundtoplayretraso, retraso
-									}
-										
-									if NotiGifConectado
-									{
-										global GifSelectedText1
-										global EfectoEntradaGif1
-										global PosVGif1
-										global UpDownEfectoEntradaGif1
-										global UpDownTiempoEntradaGif1
-										global EfectoSalidaGif1
-										global UpDownEfectoSalidaGif1
-										global BarradeTareasGif1
-										global NumberToGif := 1
-										
-										PlayGiftAction(GifSelectedText1, EfectoEntradaGif1, PosVGif1, UpDownEfectoEntradaGif1, UpDownTiempoEntradaGif1, EfectoSalidaGif1, UpDownEfectoSalidaGif1, BarradeTareasGif1)
-									}
-								}
-								else
-								{
-								if (SoundNacional != "none")
-									{
-										soundtoplayretraso := SoundToPlay.Bind(SoundNacional)
-										global RetrasoNacional
-										if (RetrasoNacional = 0)
-											retraso := -1
-										else
-											retraso := (RetrasoNacional * -1)
-
-										SetTimer soundtoplayretraso, retraso
-									}
-										
-									if NotiGifNacional
-									{
-										global GifSelectedText2
-										global EfectoEntradaGif2
-										global PosVGif2
-										global UpDownEfectoEntradaGif2
-										global UpDownTiempoEntradaGif2
-										global EfectoSalidaGif2
-										global UpDownEfectoSalidaGif2
-										global BarradeTareasGif2
-										global NumberToGif := 2
-										
-										PlayGiftAction(GifSelectedText2, EfectoEntradaGif2, PosVGif2, UpDownEfectoEntradaGif2, UpDownTiempoEntradaGif2, EfectoSalidaGif2, UpDownEfectoSalidaGif2, BarradeTareasGif2)
-									}
-								}
-							}
-
-
-							if Temporizador
+									StartTime := 0
+							} 
+							else
 							{
-								if (!isset(SecondsTemp) or SecondsTemp = 0)
-								{
-									SecondsTemp := TemporizadorH * 3600 + TemporizadorM * 60 + TemporizadorS
-									if (SecondsTemp = 0)
-									{
-										Temporizador := 0
-										if NotiNormal
-											Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip8"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-									}
-									else
-									{
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
-										StartTimeTemp := A_TickCount
-									}
-								}
-								else
-								{
-									ElapsedTimeTemp := (A_TickCount - StartTimeTemp)//1000
-								
-									if TemporizadorNotiWindows
-									{
-										if (!isset(NotificationTemp) or NotificationTemp = 0)
-										{
-											TrayTip FormatSeconds(SecondsTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-											NotificationTemp := 1
-										}
-										else 
-										{
-											DivisionPartTemp := (SecondsTemp//4)
-
-											if (DivisionPartTemp != 0)
-											{
-												if (NotificationTemp != 4 and NotificationTemp != 5)
-												{
-													if (ElapsedTimeTemp >= ((NotificationTemp * DivisionPartTemp)))
-													{
-														TrayTip FormatSeconds(SecondsTemp-ElapsedTimeTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-														NotificationTemp += 1
-													}
-												}
-												else if (NotificationTemp = 4)
-												{
-													DivisionPartTempFinal := DivisionPartTemp//3
-													if (ElapsedTimeTemp >= (((NotificationTemp-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
-													{
-														TrayTip LenguajeList.Mensajes["TrayTip9"] "`n" FormatSeconds(SecondsTemp-ElapsedTimeTemp), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-														NotificationTemp += 1
-													}
-												}
-												else if (NotificationTemp = 5)
-												{
-													if (ElapsedTimeTemp >= SecondsTemp)
-													{
-														TrayTip LenguajeList.Mensajes["TrayTip10"] "`n" FormatSeconds(0), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-														
-														NotificationTemp := 0
-													}
-												}
-											}
-											else
-											{	
-												if NotiNormal
-													Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip11"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-												
-												TemporizadorNotiWindows := 0
-												NotificationTemp :=0
-											}
-										}
-									}
-									
-									if TemporizadorNotiIcon
-									{
-										if ConectStatus
-											NumIcoInit := 5
-										else
-											NumIcoInit := 10
-										
-										if (!isset(NotificationTempIcon) or NotificationTempIcon = 0 )
-										{
-											NotificationTempIcon :=1
-										}
-										
-										if !isset(DivisionPartTemp)
-											DivisionPartTemp := (SecondsTemp//4)
-											
-										if (DivisionPartTemp != 0)
-										{
-											if (NotificationTempIcon != 4 and NotificationTempIcon != 5)
-											{
-												if (ElapsedTimeTemp >= ((NotificationTempIcon * DivisionPartTemp)))
-												{
-													NotificationTempIcon +=1
-													try
-														TraySetIcon("Icons.dll", (NumIcoInit+NotificationTempIcon))
-													
-												}
-											}
-											else if (NotificationTempIcon = 4)
-											{
-												if !isset(DivisionPartTempFinal)
-													DivisionPartTempFinal := DivisionPartTemp//3
-												if (ElapsedTimeTemp >= (((NotificationTempIcon-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
-												{
-													NotificationTempIcon +=1
-													try
-														TraySetIcon("Icons.dll", (NumIcoInit+NotificationTempIcon))
-													
-												}
-											}
-											else if (NotificationTempIcon = 5)
-											{
-												if (ElapsedTimeTemp >= SecondsTemp)
-												{
-													NotificationTempIcon :=0
-													try
-													{
-														if ConectStatus
-															TraySetIcon("Icons.dll", 5)
-														else
-															TraySetIcon("Icons.dll", 4)
-													}
-													
-												}
-											}
-										}
-										else
-										{
-											if NotiNormal
-												Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip12"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-												
-											TemporizadorNotiIcon := 0
-											NotificationTempIcon :=0
-										}
-									}
-									
-									
-									if (ElapsedTimeTemp >= SecondsTemp)
-									{
-										SecondsTemp := 0
-										Temporizador := 0
-										
-										if TemporizadorNotiWindows
-										{
-											if (NotificationTemp = 5)
-											{
-												TrayTip LenguajeList.Mensajes["TrayTip10"] FormatSeconds(0),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
-												NotificationTemp :=0
-											}
-										}
-										
-										if (NotificationTempIcon = 5)
-										{
-											try
-											{
-												if ConectStatus
-													TraySetIcon("Icons.dll", 5)
-												else
-													TraySetIcon("Icons.dll", 4)
-											}
-											NotificationTempIcon :=0
-										}
-										
-										global AIconTipold
-										A_IconTip := AIconTipold
-										
-										MenuHandler(LenguajeList.BarraMenu["QuitarCuenta"], 4, A_TrayMenu)
-										A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
-										A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-									}
-								}
-								
-								
-							}
-
-							break		
-						} 
-						else 
-						{
-							if (A_IconNumber != 3)
-							{
+								;ftp://invitado:invitado@192.168.20.1/InternetAccount.ini
 								try
-									TraySetIcon("Icons.dll", 3) ;7
-									
-								A_IconTip := LenguajeList.Mensajes["IconTip8"]
+									Download EditIniFileReadTime, "InternetAccount.ini"
 								
-								A_TrayMenu.Disable(LenguajeList.BarraMenu["BuscarActualizacion"])
-								A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
-							
-								global EditUser1
-								global EditUser2
-								global UsarSegundaCuenta
-								global DataPers 
-								
-								if !UsarSegundaCuenta
-									EditUser := EditUser1
-								else
-									EditUser := EditUser2
-								
-								
-								if (EditUser != "" or DataPers != "")
-									A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerCuenta"])	
-								else
-									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])	
-								
-								if SetInternetAccountAuto 
-									MenuHandler(LenguajeList.BarraMenu["PonerCuenta"], 3, A_TrayMenu)
-									
-								if Temporizador
+								try
 								{
-									Temporizador := 0
-									SecondsTemp := 0
-									if NotiNormal
-										Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip13"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
-
-								}
-								
-								A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
-								A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
-
-								if AbrirWebAlDesconectarse
-								{
-									if (WebAlDesconectarse != "")
+									if FileExist("InternetAccount.ini")
 									{
-										WebVerify := StrSplit(WebAlDesconectarse, [":", "."])
-										if (WebVerify[1] == "https" or WebVerify[1] == "http" or WebVerify[1] == "www")
-											WebPageVisit := WebAlDesconectarse
+										UserNameAccount := IniRead("InternetAccount.ini", "Info", "Cuenta")
+										Saldo := IniRead("InternetAccount.ini", "Info", "Saldo")
+										Factor := IniRead("InternetAccount.ini", "Info", "FactorHoras")
+										TimeIs := IniRead("InternetAccount.ini", "Info", "Hora")
+										Tiempo := Integer((Saldo/Factor)*3600)
+
+										if (TimeIs != "0")
+										{	
+											aTime := StrSplit(TimeIs, ":")
+											global aTimeTimeAccount := aTime[1] * 3600 + aTime[2] * 60 + aTime[3]
+											aTimeTimeAccount1 := A_Hour * 3600 + A_Min * 60 + A_Sec
+											StartTime := A_TickCount
+											
+											RestSec := aTimeTimeAccount1 - aTimeTimeAccount
+
+											Tiempo := (Tiempo - RestSec)
+											
+											TimeAccount := Tiempo 
+
+											if TimeRed
+											{
+												global OnAccountSendData := 1
+												global sockserver
+												global ServerOnPort
+												msgtosend := UserNameAccount ";" TimeAccount ";" aTimeTimeAccount
+												respbuf := Buffer(StrPut(msgtosend, Encoding:="UTF-8") - ((Encoding = 'utf-16' || Encoding = 'cp1200') ? 2 : 1))
+												respsize := StrPut(msgtosend, respbuf, Encoding)
+												sockserver.SendTo(respbuf, respsize, ["224.13.133.233", ServerOnPort])
+											}
+										}
+										
+										
+										Horas := Tiempo//3600 ":" FormatTime(DateAdd(19990101, Tiempo, "Seconds"), "mm:ss")
+										If ConectStatus
+											A_IconTip := LenguajeList.Mensajes["IconTip2"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " Horas
 										else
-											WebPageVisit := "https://" WebAlDesconectarse
+											A_IconTip := LenguajeList.Mensajes["IconTip6"] "`n" LenguajeList.Mensajes["IconTip21"] " " UserNameAccount "`n" LenguajeList.Mensajes["IconTip3"] " " Horas
+													
+										FileDelete "InternetAccount.ini"
+									}
+								}
+							}
+							
+
+							if WebOffAccount
+								A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
+							else if (DataSesion = "")
+								A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
+							else
+								A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarCuenta"])
+								
+							
+							if !Temporizador
+							{
+								if (TemporizadorH = 0 and TemporizadorM = 0 and TemporizadorS = 0)
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+								else
+									A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
+								A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
+							}
+							else
+							{
+								A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+								A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
+							}
+									
+								
+							If ConectStatus
+							{
+								if AbrirWebAlConectarse
+								{
+									if (WebAlConectarse != "")
+									{
+										WebVerify := StrSplit(WebAlConectarse, [":", "."])
+										if (WebVerify[1] == "https" or WebVerify[1] == "http" or WebVerify[1] == "www")
+											WebPageVisit := WebAlConectarse
+										else
+											WebPageVisit := "https://" WebAlConectarse
 											
 										if WebOption
 										{
-											if (!IsSet(WebAlreadyAlDesconectarse) or !WinExist(WebAlreadyAlDesconectarse))
+											if (!IsSet(WebAlreadyAlConectarse) or !ProcessExist(WebAlreadyAlConectarse))
 											{
 												Run WebPageVisit,,,&OutputVarPID
 												ProcessName := ProcessGetName(OutputVarPID)
-												WebAlreadyAlDesconectarse := ProcessName
+												WebAlreadyAlConectarse := ProcessName
 											}
 										}
 										else
 											Run WebPageVisit	
 									}
 								}
-
-								if IniFileReadTime
+							} 
+							else
+							{
+								if AbrirWebAlDesconocer
 								{
-									try
-										Download EditIniFileReadTime, "InternetAccount.ini"
-									
-									try
+									if (WebAlDesconocer != "")
 									{
-										if FileExist("InternetAccount.ini")
-										{
-											Account := IniRead("InternetAccount.ini", "Info", "Cuenta")
-											Saldo := IniRead("InternetAccount.ini", "Info", "Saldo")
+										WebVerify := StrSplit(WebAlDesconocer, [":", "."])
+										if (WebVerify[1] == "https" or WebVerify[1] == "http" or WebVerify[1] == "www")
+											WebPageVisit := WebAlDesconocer
+										else
+											WebPageVisit := "https://" WebAlDesconocer
 											
-											if (Saldo = "No tiene saldo") 
-												A_IconTip := LenguajeList.Mensajes["IconTip9"] " " Account "`n" LenguajeList.Mensajes["IconTip3"] " " Saldo
-
-											FileDelete "InternetAccount.ini"
+										if WebOption
+										{
+											if (!IsSet(WebAlreadyAlDesconocer) or !WinExist(WebAlreadyAlDesconocer))
+											{
+												Run WebPageVisit,,,&OutputVarPID
+												ProcessName := ProcessGetName(OutputVarPID)
+												WebAlreadyAlDesconocer := ProcessName
+											}
 										}
+										else
+											Run WebPageVisit	
 									}
 								}
-								
-								if NotiDesconectado
-									TrayTip A_IconTip,, "Mute"
+							}
 
-								if (SoundDesconectado != "none")
+							if ((NotiConectado and ConectStatus) or (NotiNacional and !ConectStatus))
+								TrayTip A_IconTip,, "Mute"
+							
+							if ConectStatus
+							{
+								if (SoundConectado != "none")
 								{
-									soundtoplayretraso := SoundToPlay.Bind(SoundDesconectado)
-									global RetrasoDesconectado 
-									if (RetrasoDesconectado = 0)
+									soundtoplayretraso := SoundToPlay.Bind(SoundConectado)
+									global RetrasoConectado
+									if (RetrasoConectado = 0)
 										retraso := -1
 									else
-										retraso := (RetrasoDesconectado * -1)
+										retraso := (RetrasoConectado * -1)
+								
+									SetTimer soundtoplayretraso, retraso
+								}
+									
+								if NotiGifConectado
+								{
+									global GifSelectedText1
+									global EfectoEntradaGif1
+									global PosVGif1
+									global UpDownEfectoEntradaGif1
+									global UpDownTiempoEntradaGif1
+									global EfectoSalidaGif1
+									global UpDownEfectoSalidaGif1
+									global BarradeTareasGif1
+									global NumberToGif := 1
+									
+									PlayGiftAction(GifSelectedText1, EfectoEntradaGif1, PosVGif1, UpDownEfectoEntradaGif1, UpDownTiempoEntradaGif1, EfectoSalidaGif1, UpDownEfectoSalidaGif1, BarradeTareasGif1)
+								}
+							}
+							else
+							{
+							if (SoundNacional != "none")
+								{
+									soundtoplayretraso := SoundToPlay.Bind(SoundNacional)
+									global RetrasoNacional
+									if (RetrasoNacional = 0)
+										retraso := -1
+									else
+										retraso := (RetrasoNacional * -1)
 
 									SetTimer soundtoplayretraso, retraso
 								}
 									
-								if NotiGifDesconectado
+								if NotiGifNacional
 								{
-									global GifSelectedText3
-									global EfectoEntradaGif3
-									global PosVGif3
-									global UpDownEfectoEntradaGif3
-									global UpDownTiempoEntradaGif3
-									global EfectoSalidaGif3
-									global UpDownEfectoSalidaGif3
-									global BarradeTareasGif3
-									global NumberToGif := 3
+									global GifSelectedText2
+									global EfectoEntradaGif2
+									global PosVGif2
+									global UpDownEfectoEntradaGif2
+									global UpDownTiempoEntradaGif2
+									global EfectoSalidaGif2
+									global UpDownEfectoSalidaGif2
+									global BarradeTareasGif2
+									global NumberToGif := 2
 									
-									PlayGiftAction(GifSelectedText3, EfectoEntradaGif3, PosVGif3, UpDownEfectoEntradaGif3, UpDownTiempoEntradaGif3, EfectoSalidaGif3, UpDownEfectoSalidaGif3, BarradeTareasGif3)
+									PlayGiftAction(GifSelectedText2, EfectoEntradaGif2, PosVGif2, UpDownEfectoEntradaGif2, UpDownTiempoEntradaGif2, EfectoSalidaGif2, UpDownEfectoSalidaGif2, BarradeTareasGif2)
 								}
 							}
-							break
 						}
+
+
+						if Temporizador
+						{
+							if (!isset(SecondsTemp) or SecondsTemp = 0)
+							{
+								SecondsTemp := TemporizadorH * 3600 + TemporizadorM * 60 + TemporizadorS
+								if (SecondsTemp = 0)
+								{
+									Temporizador := 0
+									if NotiNormal
+										Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip8"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
+								}
+								else
+								{
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+									A_TrayMenu.Enable(LenguajeList.BarraMenu["QuitarTemporizador"])
+									StartTimeTemp := A_TickCount
+								}
+							}
+							else
+							{
+								ElapsedTimeTemp := (A_TickCount - StartTimeTemp)//1000
+							
+								if TemporizadorNotiWindows
+								{
+									if (!isset(NotificationTemp) or NotificationTemp = 0)
+									{
+										TrayTip FormatSeconds(SecondsTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+										NotificationTemp := 1
+									}
+									else 
+									{
+										DivisionPartTemp := (SecondsTemp//4)
+
+										if (DivisionPartTemp != 0)
+										{
+											if (NotificationTemp != 4 and NotificationTemp != 5)
+											{
+												if (ElapsedTimeTemp >= ((NotificationTemp * DivisionPartTemp)))
+												{
+													TrayTip FormatSeconds(SecondsTemp-ElapsedTimeTemp),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+													NotificationTemp += 1
+												}
+											}
+											else if (NotificationTemp = 4)
+											{
+												DivisionPartTempFinal := DivisionPartTemp//3
+												if (ElapsedTimeTemp >= (((NotificationTemp-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
+												{
+													TrayTip LenguajeList.Mensajes["TrayTip9"] "`n" FormatSeconds(SecondsTemp-ElapsedTimeTemp), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+													NotificationTemp += 1
+												}
+											}
+											else if (NotificationTemp = 5)
+											{
+												if (ElapsedTimeTemp >= SecondsTemp)
+												{
+													TrayTip LenguajeList.Mensajes["TrayTip10"] "`n" FormatSeconds(0), LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+													
+													NotificationTemp := 0
+												}
+											}
+										}
+										else
+										{	
+											if NotiNormal
+												Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip11"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+											
+											TemporizadorNotiWindows := 0
+											NotificationTemp :=0
+										}
+									}
+								}
+								
+								if TemporizadorNotiIcon
+								{
+									if ConectStatus
+										NumIcoInit := 5
+									else
+										NumIcoInit := 10
+									
+									if (!isset(NotificationTempIcon) or NotificationTempIcon = 0 )
+									{
+										NotificationTempIcon :=1
+									}
+									
+									if !isset(DivisionPartTemp)
+										DivisionPartTemp := (SecondsTemp//4)
+										
+									if (DivisionPartTemp != 0)
+									{
+										if (NotificationTempIcon != 4 and NotificationTempIcon != 5)
+										{
+											if (ElapsedTimeTemp >= ((NotificationTempIcon * DivisionPartTemp)))
+											{
+												NotificationTempIcon +=1
+												try
+													TraySetIcon("Icons.dll", (NumIcoInit+NotificationTempIcon))
+												
+											}
+										}
+										else if (NotificationTempIcon = 4)
+										{
+											if !isset(DivisionPartTempFinal)
+												DivisionPartTempFinal := DivisionPartTemp//3
+											if (ElapsedTimeTemp >= (((NotificationTempIcon-1) * DivisionPartTemp)+(DivisionPartTempFinal*2)))	
+											{
+												NotificationTempIcon +=1
+												try
+													TraySetIcon("Icons.dll", (NumIcoInit+NotificationTempIcon))
+												
+											}
+										}
+										else if (NotificationTempIcon = 5)
+										{
+											if (ElapsedTimeTemp >= SecondsTemp)
+											{
+												NotificationTempIcon :=0
+												try
+												{
+													if ConectStatus
+														TraySetIcon("Icons.dll", 5)
+													else
+														TraySetIcon("Icons.dll", 4)
+												}
+												
+											}
+										}
+									}
+									else
+									{
+										if NotiNormal
+											Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip12"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+											
+										TemporizadorNotiIcon := 0
+										NotificationTempIcon :=0
+									}
+								}
+								
+								
+								if (ElapsedTimeTemp >= SecondsTemp)
+								{
+									SecondsTemp := 0
+									Temporizador := 0
+									
+									if TemporizadorNotiWindows
+									{
+										if (NotificationTemp = 5)
+										{
+											TrayTip LenguajeList.Mensajes["TrayTip10"] FormatSeconds(0),LenguajeList.Opciones["TemporizadorTexto1"] ":", "Mute"
+											NotificationTemp :=0
+										}
+									}
+									
+									if (NotificationTempIcon = 5)
+									{
+										try
+										{
+											if ConectStatus
+												TraySetIcon("Icons.dll", 5)
+											else
+												TraySetIcon("Icons.dll", 4)
+										}
+										NotificationTempIcon :=0
+									}
+									
+									global AIconTipold
+									A_IconTip := AIconTipold
+									
+									MenuHandler(LenguajeList.BarraMenu["QuitarCuenta"], 4, A_TrayMenu)
+									A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerTemporizador"])
+									A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
+								}
+							}
+							
+							
+						}
+
+						break		
+					} 
+					else 
+					{
+						if (A_IconNumber != 3)
+						{
+							try
+								TraySetIcon("Icons.dll", 3) ;7
+								
+							A_IconTip := LenguajeList.Mensajes["IconTip8"]
+							
+							A_TrayMenu.Disable(LenguajeList.BarraMenu["BuscarActualizacion"])
+							A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarCuenta"])
+						
+							global EditUser
+							global DataPers 
+						
+							if (EditUser != "" or DataPers != "")
+								A_TrayMenu.Enable(LenguajeList.BarraMenu["PonerCuenta"])	
+							else
+								A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerCuenta"])	
+							
+							if SetInternetAccountAuto 
+								MenuHandler(LenguajeList.BarraMenu["PonerCuenta"], 3, A_TrayMenu)
+								
+							if Temporizador
+							{
+								Temporizador := 0
+								SecondsTemp := 0
+								if NotiNormal
+									Notify.Show(LenguajeList.Mensajes["Msgbox5"], LenguajeList.Opciones["TemporizadorTexto1"] ":`n" LenguajeList.Mensajes["TrayTip13"], 'Icons.dll|Icon3',,, 'dur=3 SHOW=RollWest@300 HIDE=RollEast@300 TC=white MC=white BC=d89519 Style=EDGE')
+
+							}
+							
+							A_TrayMenu.Disable(LenguajeList.BarraMenu["PonerTemporizador"])
+							A_TrayMenu.Disable(LenguajeList.BarraMenu["QuitarTemporizador"])
+
+							if AbrirWebAlDesconectarse
+							{
+								if (WebAlDesconectarse != "")
+								{
+									WebVerify := StrSplit(WebAlDesconectarse, [":", "."])
+									if (WebVerify[1] == "https" or WebVerify[1] == "http" or WebVerify[1] == "www")
+										WebPageVisit := WebAlDesconectarse
+									else
+										WebPageVisit := "https://" WebAlDesconectarse
+										
+									if WebOption
+									{
+										if (!IsSet(WebAlreadyAlDesconectarse) or !WinExist(WebAlreadyAlDesconectarse))
+										{
+											Run WebPageVisit,,,&OutputVarPID
+											ProcessName := ProcessGetName(OutputVarPID)
+											WebAlreadyAlDesconectarse := ProcessName
+										}
+									}
+									else
+										Run WebPageVisit	
+								}
+							}
+
+							if IniFileReadTime
+							{
+								try
+									Download EditIniFileReadTime, "InternetAccount.ini"
+								
+								try
+								{
+									if FileExist("InternetAccount.ini")
+									{
+										Account := IniRead("InternetAccount.ini", "Info", "Cuenta")
+										Saldo := IniRead("InternetAccount.ini", "Info", "Saldo")
+										
+										if (Saldo = "No tiene saldo") 
+											A_IconTip := LenguajeList.Mensajes["IconTip9"] " " Account "`n" LenguajeList.Mensajes["IconTip3"] " " Saldo
+
+										FileDelete "InternetAccount.ini"
+									}
+								}
+							}
+							
+							if NotiDesconectado
+								TrayTip A_IconTip,, "Mute"
+
+							if (SoundDesconectado != "none")
+							{
+								soundtoplayretraso := SoundToPlay.Bind(SoundDesconectado)
+								global RetrasoDesconectado 
+								if (RetrasoDesconectado = 0)
+									retraso := -1
+								else
+									retraso := (RetrasoDesconectado * -1)
+
+								SetTimer soundtoplayretraso, retraso
+							}
+								
+							if NotiGifDesconectado
+							{
+								global GifSelectedText3
+								global EfectoEntradaGif3
+								global PosVGif3
+								global UpDownEfectoEntradaGif3
+								global UpDownTiempoEntradaGif3
+								global EfectoSalidaGif3
+								global UpDownEfectoSalidaGif3
+								global BarradeTareasGif3
+								global NumberToGif := 3
+								
+								PlayGiftAction(GifSelectedText3, EfectoEntradaGif3, PosVGif3, UpDownEfectoEntradaGif3, UpDownTiempoEntradaGif3, EfectoSalidaGif3, UpDownEfectoSalidaGif3, BarradeTareasGif3)
+							}
+						}
+						break
 					}
 				}
-				Sleep(1)
 			}
 		}
 		
@@ -5416,7 +5409,6 @@ VerefyConx()
 			}
 		}
 	}
-	sleep(1)
 }
 
 PlayGiftAction(GifSelectedText, EfectoEntradaGif, PosVGif, UpDownEfectoEntradaGif, UpDownTiempoEntradaGif, EfectoSalidaGif, UpDownEfectoSalidaGif, BarradeTareasGif, *)
@@ -5447,7 +5439,7 @@ PlayGiftAction(GifSelectedText, EfectoEntradaGif, PosVGif, UpDownEfectoEntradaGi
 				{
 					RegWrite "1", "REG_DWORD", A_LoopRegKey, "IsPromoted"
 					RestPromoted := 1
-					sleep(1000)
+					Sleep(1000)
 				}
 					
 				break
@@ -5560,7 +5552,7 @@ PlayGiftAction(GifSelectedText, EfectoEntradaGif, PosVGif, UpDownEfectoEntradaGi
 				WinMove RightOculto, Ygift, , , "ahk_id " MyGif.HWND
 			}
 		}
-
+		
 		sleep(UpDownTiempoEntradaGif*1000)
 		
 		global EntradaGifNow := 0
@@ -5645,28 +5637,6 @@ AnimateWindow(HWND, Options, t)
    return DllCall("AnimateWindow", "UPtr", HWND, "Int", t, "UInt", o)
 }
 
-ResolveHostname(hostname)
-{
-    WSADATA := Buffer(394 + (A_PtrSize - 2) + A_PtrSize, 0) 
-	WSADATAPtr := WSADATA.Ptr
-	
-    if (DllCall("ws2_32\WSAStartup", "ushort", 0x0202, "uptr", WSADATAPtr) != 0)
-        return "Failed"
-
-    hints := Buffer(16 + 4 * A_PtrSize, 0)
-	hintsPtr := hints.Ptr
-	
-    if (DllCall("ws2_32\getaddrinfo", "astr", hostname, "ptr", 0, "ptr", hints, "ptr*", &hintsPtr))
-        return "Failed"
-
-	addr := hintsPtr
-	offset := 16 + 2 * A_PtrSize
-	var := NumGet(addr+0, offset, "ptr")
-	ipaddr := DllCall("ws2_32\inet_ntoa", "uint", NumGet(var + 4, 0, "uint"), "astr")
-	
-    return ipaddr
-}
-
 Send_WM_COPYDATA(StringToSend, TargetScriptTitle)
 ; This function sends the specified string to the specified window and returns the reply.
 ; The reply is 1 if the target window processed the message, or 0 if it ignored it.
@@ -5692,7 +5662,6 @@ Send_WM_COPYDATA(StringToSend, TargetScriptTitle)
 
 WindowProc(hwnd, uMsg, wParam, lParam)
 {
-	critical
 	static WM_CTLCOLOREDIT    := 0x0133
 	static WM_CTLCOLORLISTBOX := 0x0134
 	static WM_CTLCOLORBTN     := 0x0135
