@@ -2264,7 +2264,7 @@ Settings(*)
 	
 	;////// [Volumen Sonido]
 	MySliderText := MyCheckNotiErrorText := MyGui.Add("Text","xs+15 yp+35 Section", LenguajeList.General["NotificacionesTexto13"])
-	MySlider := MyGui.Add("Slider", "xs+95 w152 h25 yp-7 vMySlider Range0-100 TickInterval10 ToolTipBottom")
+	MySlider := MyGui.Add("Slider", "xs+80 w152 h25 yp-7 vMySlider Range0-100 TickInterval10 ToolTipBottom")
 	MySlider.Value := VolMusic
 	
 	MySliderText.Visible := 0
@@ -4750,16 +4750,6 @@ VerefyConx()
 		global NotifyFullScreen 
 		global NotifySoundFullScreen 
 		
-		IsAppFullScreen := 0
-		if (!NotifyFullScreen or !NotifySoundFullScreen)
-		{
-			if (WinGetClass("A") != "WorkerW" and WinGetProcessName("A") != "explorer.exe")
-			{
-				WinGetPos ,, &W, &H, "A"
-				If (W = SysGet(78) and H = SysGet(79))
-					IsAppFullScreen := 1
-			}
-		}
 		
 		Efectos := StrSplit(LenguajeList.GIF["EfectosTexto2"], ",")
 		
@@ -4773,6 +4763,20 @@ VerefyConx()
 
 		if (Webs.Length != 0)
 		{
+			IsAppFullScreen := 0
+			if (!NotifyFullScreen or !NotifySoundFullScreen)
+			{
+				try
+				{
+					if (WinGetClass("A") != "WorkerW" and WinGetProcessName("A") != "explorer.exe")
+					{
+						WinGetPos ,, &W, &H, "A"
+						If (W = SysGet(78) and H = SysGet(79))
+							IsAppFullScreen := 1
+					}
+				}
+			}
+			
 			For w in Webs
 			{
 				DataEnv := w " " VerificarPingCada " " VerificarConx
