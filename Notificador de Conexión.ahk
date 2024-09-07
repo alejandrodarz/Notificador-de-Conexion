@@ -12,11 +12,11 @@ SetTitleMatchMode 2
 SetControlDelay -1
 SetMouseDelay -1
 ; <for compiled scripts>
-;@Ahk2Exe-SetFileVersion 2.2.0
+;@Ahk2Exe-SetFileVersion 2.3.0
 ;@Ahk2Exe-SetDescription Notificador de Conexión
 ; </for compiled scripts>
 
-global Version := "v2.2.0"
+global Version := "v2.3.0"
 global WinAutoRunVerify := true
 global IniciarConWindows := 0
 global DarkMode := 0
@@ -187,6 +187,9 @@ global aTimeTimeAccount := 0
 global SaveAccounts := ""
 global SelectCuenta := 0
 
+global NotifyFullScreen := 1
+global NotifySoundFullScreen := 1
+
 
 ;global TimeRedAdapters := 0
 ;global IPAddOrRemove := ""
@@ -195,7 +198,7 @@ global SelectCuenta := 0
 if FileExist("options.ini")
 {
 	;///// [MyChecks]
-	MyChecks := ["IniciarConWindows", "DarkMode", "AbrirWebAlConectarse", "AbrirWebAlDesconocer", "AbrirWebAlDesconectarse", "AbrirWebAlError", "WebOption", "NotiConectado", "NotiNacional", "NotiDesconectado", "NotiError", "DataPers", "WebOffAccount", "IniFileReadTime", "WebConectado", "WebDesconocido", "WebDesconectado", "TemporizadorNotiTooltip", "TemporizadorNotiIcon", "TemporizadorNotiWindows", "NotiGifError", "NotiGifDesconectado", "NotiGifNacional", "NotiGifConectado", "NotiNormal", "ConectadoGif", "DesconocidoGif", "DesconectadoGif", "ErrorGif", "TamanodelGif1", "TamanodelGif2", "TamanodelGif3", "TamanodelGif4", "RelacionGif1", "RelacionGif2", "RelacionGif3", "RelacionGif4", "VoltearEntradaGif1", "VoltearSalidaGif1", "VoltearEntradaGif2", "VoltearSalidaGif2", "VoltearEntradaGif3", "VoltearSalidaGif3", "VoltearEntradaGif4", "VoltearSalidaGif4", "BarradeTareasGif1", "BarradeTareasGif2", "BarradeTareasGif3", "BarradeTareasGif4", "ActIni", "TimeRed"]
+	MyChecks := ["IniciarConWindows", "DarkMode", "AbrirWebAlConectarse", "AbrirWebAlDesconocer", "AbrirWebAlDesconectarse", "AbrirWebAlError", "WebOption", "NotiConectado", "NotiNacional", "NotiDesconectado", "NotiError", "DataPers", "WebOffAccount", "IniFileReadTime", "WebConectado", "WebDesconocido", "WebDesconectado", "TemporizadorNotiTooltip", "TemporizadorNotiIcon", "TemporizadorNotiWindows", "NotiGifError", "NotiGifDesconectado", "NotiGifNacional", "NotiGifConectado", "NotiNormal", "ConectadoGif", "DesconocidoGif", "DesconectadoGif", "ErrorGif", "TamanodelGif1", "TamanodelGif2", "TamanodelGif3", "TamanodelGif4", "RelacionGif1", "RelacionGif2", "RelacionGif3", "RelacionGif4", "VoltearEntradaGif1", "VoltearSalidaGif1", "VoltearEntradaGif2", "VoltearSalidaGif2", "VoltearEntradaGif3", "VoltearSalidaGif3", "VoltearEntradaGif4", "VoltearSalidaGif4", "BarradeTareasGif1", "BarradeTareasGif2", "BarradeTareasGif3", "BarradeTareasGif4", "ActIni", "TimeRed", "NotifyFullScreen", "NotifySoundFullScreen"]
 	
 	;///// [MyEdits]
 	MyEdits := ["WebAlConectarse", "WebAlDesconocer", "WebAlDesconectarse", "WebAlError", "SoundConectado", "SoundNacional", "SoundDesconectado", "SoundError", "EditConectado", "EditNacional", "EditDesconectado", "EditUser", "EditPassword", "EditDataPers", "EditWebOffAccount", "EditIniFileReadTime", "AnchoGif1", "AnchoGif2", "AnchoGif3", "AnchoGif4", "LargoGif1", "LargoGif2", "LargoGif3", "LargoGif4", "GifSelected1", "GifSelected2", "GifSelected3", "GifSelected4", "GifSelectedText1", "GifSelectedText2", "GifSelectedText3", "GifSelectedText4", "LenguajeText", "DataSesion", "SaveAccounts", "SelectCuenta"]
@@ -401,6 +404,8 @@ if FileExist("options.ini")
 	VolMusic=100
 	SaveAccounts=
 	SelectCuenta=0
+	NotifyFullScreen=1
+	NotifySoundFullScreen=1
 	)"
 	
 	FileAppend options, "options.ini"
@@ -533,6 +538,8 @@ LangCreate(*)
 		NotificationsTexto11=Sounds
 		NotificationsTexto12=Delay
 		NotificationsTexto13=Volume:
+		NotificationsTexto14=Notify when the screen is full.
+		NotificationsTexto15=Sound when full screen.
 
 		[Options]
 		PaginasWebTexto1=Web Pages
@@ -693,6 +700,8 @@ LangCreate(*)
 		NotificacionesTexto11=Sonidos
 		NotificacionesTexto12=Retraso
 		NotificacionesTexto13=Volumen:
+		NotificacionesTexto14=Notificar cuando esté la pantalla completa.
+		NotificacionesTexto15=Sonar cuando esté la pantalla completa.
 
 		[Opciones]
 		PaginasWebTexto1=Paginas Web
@@ -821,7 +830,7 @@ LangChange(Lang, *)
 		else if (NumSection = 4)
 			KeysInScript :=	["Titulo","Pestanas","Texto1","Boton1","Boton2","Boton3"]
 		else if (NumSection = 5)
-			KeysInScript :=	["BasicasTexto1","BasicasTexto2","BasicasTexto3","BasicasTexto4","BasicasTexto5","BasicasTexto6","BasicasTexto7","BasicasTexto8","BasicasTexto9","PingTexto1","PingTexto2","PingTexto3","PingTexto4","CuentaTexto1","CuentaTexto2","CuentaTexto3","CuentaTexto4","NotificacionesTexto1","NotificacionesTexto2","NotificacionesTexto3","NotificacionesTexto4","NotificacionesTexto5","NotificacionesTexto6","NotificacionesTexto7","NotificacionesTexto8","NotificacionesTexto9", "NotificacionesTexto10", "NotificacionesTexto11", "NotificacionesTexto12", "NotificacionesTexto13"]
+			KeysInScript :=	["BasicasTexto1","BasicasTexto2","BasicasTexto3","BasicasTexto4","BasicasTexto5","BasicasTexto6","BasicasTexto7","BasicasTexto8","BasicasTexto9","PingTexto1","PingTexto2","PingTexto3","PingTexto4","CuentaTexto1","CuentaTexto2","CuentaTexto3","CuentaTexto4","NotificacionesTexto1","NotificacionesTexto2","NotificacionesTexto3","NotificacionesTexto4","NotificacionesTexto5","NotificacionesTexto6","NotificacionesTexto7","NotificacionesTexto8","NotificacionesTexto9", "NotificacionesTexto10", "NotificacionesTexto11", "NotificacionesTexto12", "NotificacionesTexto13", "NotificacionesTexto14", "NotificacionesTexto15"]
 		else if (NumSection = 6)
 			KeysInScript :=	["PaginasWebTexto1","PaginasWebTexto2","PaginasWebTexto3","PaginasWebTexto4","PaginasWebTexto5","PaginasWebTexto6","PaginasWebTexto61","PaginasWebTexto7","AvanzadoTexto1","AvanzadoTexto2","AvanzadoTexto3","AvanzadoTexto4","AvanzadoTexto5","TemporizadorTexto1","TemporizadorTexto3","TemporizadorTexto4","TemporizadorTexto5","RedTexto1","RedTexto2","RedTexto3"]
 		else if (NumSection = 7)
@@ -2253,22 +2262,40 @@ Settings(*)
 	MyUpDownRetrasoError.value := RetrasoError
 	;//////
 	
-	
-	MySliderText := MyCheckNotiErrorText := MyGui.Add("Text","xs+15 yp+35", LenguajeList.General["NotificacionesTexto13"])
+	;////// [Volumen Sonido]
+	MySliderText := MyCheckNotiErrorText := MyGui.Add("Text","xs+15 yp+35 Section", LenguajeList.General["NotificacionesTexto13"])
 	MySlider := MyGui.Add("Slider", "xs+95 w152 h25 yp-7 vMySlider Range0-100 TickInterval10 ToolTipBottom")
 	MySlider.Value := VolMusic
 	
 	MySliderText.Visible := 0
 	MySlider.Visible := 0
+	;//////
+	
+	;////// [Sonar en pantalla commpleta]
+	MyCheckSoundFullScreen := MyGui.Add("Checkbox","xs y+12 vNotifySoundFullScreen", " ")
+	MyCheckSoundFullScreen.value := NotifySoundFullScreen
+	MyTextSoundFullScreen := MyGui.Add("Text","yp x+-1", LenguajeList.General["NotificacionesTexto15"])
+	MyTextSoundFullScreen.OnEvent("Click", GMyTextSoundFullScreen)
+
+	;//////
 	
 	;////// [Notificaciones básicas y de información.]
-	MyCheckNotiNormal := MyGui.Add("Checkbox","xs+15 y+12 vNotiNormal", " ")
+	MyCheckNotiNormal := MyGui.Add("Checkbox","xs ys vNotiNormal", " ")
 	MyCheckNotiNormal.value := NotiNormal
 	MyTextNotiNormal := MyGui.Add("Text","yp x+-1", LenguajeList.General["NotificacionesTexto9"])
 	MyTextNotiNormal.OnEvent("Click", GMyTextNotiNormal)
 
 	;//////
 	
+	;////// [Notificar en Pantalla Completa.]
+	MyCheckNotifyFullScreen := MyGui.Add("Checkbox","xs y+12 vNotifyFullScreen", " ")
+	MyCheckNotifyFullScreen.value := NotifyFullScreen
+	MyTextNotifyFullScreen := MyGui.Add("Text","yp x+-1", LenguajeList.General["NotificacionesTexto14"])
+	MyTextNotifyFullScreen.OnEvent("Click", GNotifyFullScreen)
+
+	;//////
+	
+
 	GNotiChooose(MyRadioGroupNotiChooose)
 	
 	GNotiChooose(Gui ,*)
@@ -2290,7 +2317,12 @@ Settings(*)
 			MyUpDownRetrasoConectado.Visible := 0
 			MyEditRetrasoConectado.Visible := 0
 			MyTextRetrasoMs.Visible := 0
+
+			MyCheckNotifyFullScreen.Visible := 1
+			MyTextNotifyFullScreen.Visible := 1
 			
+			MyCheckNotiNormal.Visible := 1
+			MyTextNotiNormal.Visible := 1
 			MyTextGIF.Visible := 1
 			MyTextWindows.Visible := 1
 			MyCheckNotiGifConectado.Visible := 1
@@ -2304,6 +2336,9 @@ Settings(*)
 			
 			MySliderText.Visible := 0
 			MySlider.Visible := 0
+			
+			MyCheckSoundFullScreen.Visible := 0
+			MyTextSoundFullScreen.Visible := 0
 		}
 		else
 		{
@@ -2317,7 +2352,11 @@ Settings(*)
 			MyCheckNotiDesconectado.Visible := 0
 			MyCheckNotiGifError.Visible := 0
 			MyCheckNotiError.Visible := 0
+			MyCheckNotiNormal.Visible := 0
+			MyTextNotiNormal.Visible := 0
 			
+			MyCheckNotifyFullScreen.Visible := 0
+			MyTextNotifyFullScreen.Visible := 0
 			
 			MyTextSonido.Visible := 1
 			MyDropDownListSoundConectadoNum.Visible := 1
@@ -2337,7 +2376,26 @@ Settings(*)
 			
 			MySliderText.Visible := 1
 			MySlider.Visible := 1
+			
+			MyCheckSoundFullScreen.Visible := 1
+			MyTextSoundFullScreen.Visible := 1
 		}
+	}
+	
+	GNotifyFullScreen(*)
+	{
+		if MyCheckNotifyFullScreen.value
+			MyCheckNotifyFullScreen.value := 0
+		else
+			MyCheckNotifyFullScreen.value := 1	
+	}
+	
+	GMyTextSoundFullScreen(*)
+	{
+		if MyCheckSoundFullScreen.value
+			MyCheckSoundFullScreen.value := 0
+		else
+			MyCheckSoundFullScreen.value := 1	
 	}
 	
 
@@ -3735,6 +3793,8 @@ Settings(*)
 				MyCheckNotiGifConectado.value := 0
 				MyCheckNotiNormal.value := 1
 				
+				MyCheckNotifyFullScreen := 1
+				MyCheckSoundFullScreen := 1
 
 				MyUpDownPosVGif.value := 0
 				MyCheckTamanodelGif.value := 0
@@ -3827,6 +3887,9 @@ Settings(*)
 		global EditConectado := SaveData.MyEditConectado 
 		global EditNacional := SaveData.MyEditNacional 
 		global EditDesconectado := SaveData.MyEditDesconectado
+		
+		global NotifyFullScreen := SaveData.NotifyFullScreen
+		global NotifySoundFullScreen := SaveData.NotifySoundFullScreen
 
 		global VolMusic := SaveData.MySlider
 		AppVol("Notificador de Conexión.exe", VolMusic)
@@ -4364,7 +4427,7 @@ Settings(*)
 		
 		options := "[settings]`n"
 		
-		SettingsSave := ["IniciarConWindows", "ActIni", "DarkMode", "AbrirWebAlConectarse", "WebAlConectarse", "AbrirWebAlDesconocer", "WebAlDesconocer", "AbrirWebAlDesconectarse", "WebAlDesconectarse", "AbrirWebAlError", "WebAlError", "WebOption", "VerificarConxCada", "VerificarConx", "NotiConectado", "NotiNacional", "NotiDesconectado", "NotiError", "SoundConectado", "SoundNacional", "SoundDesconectado", "SoundError", "EditConectado", "EditNacional", "EditDesconectado", "EditUser", "EditPassword", "DataPers", "EditDataPers", "EditPageLogin", "WebOffAccount", "EditWebOffAccount", "IniFileReadTime", "EditIniFileReadTime", "WebConectado", "WebDesconocido", "WebDesconectado", "VerificarPingCada", "TemporizadorH", "TemporizadorM", "TemporizadorS", "TemporizadorNotiIcon", "TemporizadorNotiTooltip", "TemporizadorNotiWindows", "NotiGifError", "NotiGifDesconectado", "NotiGifNacional", "NotiGifConectado", "NotiNormal", "ConectadoGif", "DesconocidoGif", "DesconectadoGif", "ErrorGif", "PosVGif1", "TamanodelGif1", "AnchoGif1", "LargoGif1", "RelacionGif1", "EfectoEntradaGif1", "UpDownEfectoEntradaGif1", "UpDownTiempoEntradaGif1", "EfectoSalidaGif1", "UpDownEfectoSalidaGif1", "GifSelected1", "GifSelectedText1", "BarradeTareasGif1", "PosVGif2", "TamanodelGif2", "AnchoGif2", "LargoGif2", "RelacionGif2", "EfectoEntradaGif2", "UpDownEfectoEntradaGif2", "UpDownTiempoEntradaGif2", "EfectoSalidaGif2", "UpDownEfectoSalidaGif2", "GifSelected2", "GifSelectedText2", "BarradeTareasGif2", "PosVGif3", "TamanodelGif3", "AnchoGif3", "LargoGif3", "RelacionGif3", "EfectoEntradaGif3", "UpDownEfectoEntradaGif3", "UpDownTiempoEntradaGif3", "EfectoSalidaGif3", "UpDownEfectoSalidaGif3", "GifSelected3", "GifSelectedText3", "BarradeTareasGif3", "PosVGif4", "TamanodelGif4", "AnchoGif4", "LargoGif4", "RelacionGif4", "EfectoEntradaGif4", "UpDownEfectoEntradaGif4", "UpDownTiempoEntradaGif4", "EfectoSalidaGif4", "UpDownEfectoSalidaGif4", "GifSelected4", "GifSelectedText4", "BarradeTareasGif4", "VoltearEntradaGif1", "VoltearSalidaGif1", "VoltearEntradaGif2", "VoltearSalidaGif2", "VoltearEntradaGif3", "VoltearSalidaGif3", "VoltearEntradaGif4", "VoltearSalidaGif4", "LenguajeText", "DataSesion", "RetrasoConectado", "RetrasoNacional", "RetrasoDesconectado", "RetrasoError", "ServerOnPort", "TimeRed", "VolMusic", "SaveAccounts", "SelectCuenta"]
+		SettingsSave := ["IniciarConWindows", "ActIni", "DarkMode", "AbrirWebAlConectarse", "WebAlConectarse", "AbrirWebAlDesconocer", "WebAlDesconocer", "AbrirWebAlDesconectarse", "WebAlDesconectarse", "AbrirWebAlError", "WebAlError", "WebOption", "VerificarConxCada", "VerificarConx", "NotiConectado", "NotiNacional", "NotiDesconectado", "NotiError", "SoundConectado", "SoundNacional", "SoundDesconectado", "SoundError", "EditConectado", "EditNacional", "EditDesconectado", "EditUser", "EditPassword", "DataPers", "EditDataPers", "EditPageLogin", "WebOffAccount", "EditWebOffAccount", "IniFileReadTime", "EditIniFileReadTime", "WebConectado", "WebDesconocido", "WebDesconectado", "VerificarPingCada", "TemporizadorH", "TemporizadorM", "TemporizadorS", "TemporizadorNotiIcon", "TemporizadorNotiTooltip", "TemporizadorNotiWindows", "NotiGifError", "NotiGifDesconectado", "NotiGifNacional", "NotiGifConectado", "NotiNormal", "ConectadoGif", "DesconocidoGif", "DesconectadoGif", "ErrorGif", "PosVGif1", "TamanodelGif1", "AnchoGif1", "LargoGif1", "RelacionGif1", "EfectoEntradaGif1", "UpDownEfectoEntradaGif1", "UpDownTiempoEntradaGif1", "EfectoSalidaGif1", "UpDownEfectoSalidaGif1", "GifSelected1", "GifSelectedText1", "BarradeTareasGif1", "PosVGif2", "TamanodelGif2", "AnchoGif2", "LargoGif2", "RelacionGif2", "EfectoEntradaGif2", "UpDownEfectoEntradaGif2", "UpDownTiempoEntradaGif2", "EfectoSalidaGif2", "UpDownEfectoSalidaGif2", "GifSelected2", "GifSelectedText2", "BarradeTareasGif2", "PosVGif3", "TamanodelGif3", "AnchoGif3", "LargoGif3", "RelacionGif3", "EfectoEntradaGif3", "UpDownEfectoEntradaGif3", "UpDownTiempoEntradaGif3", "EfectoSalidaGif3", "UpDownEfectoSalidaGif3", "GifSelected3", "GifSelectedText3", "BarradeTareasGif3", "PosVGif4", "TamanodelGif4", "AnchoGif4", "LargoGif4", "RelacionGif4", "EfectoEntradaGif4", "UpDownEfectoEntradaGif4", "UpDownTiempoEntradaGif4", "EfectoSalidaGif4", "UpDownEfectoSalidaGif4", "GifSelected4", "GifSelectedText4", "BarradeTareasGif4", "VoltearEntradaGif1", "VoltearSalidaGif1", "VoltearEntradaGif2", "VoltearSalidaGif2", "VoltearEntradaGif3", "VoltearSalidaGif3", "VoltearEntradaGif4", "VoltearSalidaGif4", "LenguajeText", "DataSesion", "RetrasoConectado", "RetrasoNacional", "RetrasoDesconectado", "RetrasoError", "ServerOnPort", "TimeRed", "VolMusic", "SaveAccounts", "SelectCuenta", "NotifyFullScreen", "NotifySoundFullScreen"]
 		
 		For a in SettingsSave
 		{
@@ -4684,6 +4747,20 @@ VerefyConx()
 		global NotiGifDesconectado
 		global NotiGifError
 		
+		global NotifyFullScreen 
+		global NotifySoundFullScreen 
+		
+		IsAppFullScreen := 0
+		if (!NotifyFullScreen or !NotifySoundFullScreen)
+		{
+			if (WinGetClass("A") != "WorkerW" and WinGetProcessName("A") != "explorer.exe")
+			{
+				WinGetPos ,, &W, &H, "A"
+				If (W = SysGet(78) and H = SysGet(79))
+					IsAppFullScreen := 1
+			}
+		}
+		
 		Efectos := StrSplit(LenguajeList.GIF["EfectosTexto2"], ",")
 		
 		Webs := []
@@ -4966,64 +5043,79 @@ VerefyConx()
 							}
 
 							if ((NotiConectado and ConectStatus) or (NotiNacional and !ConectStatus))
-								TrayTip A_IconTip,, "Mute"
+							{
+								if (!NotifyFullScreen and !IsAppFullScreen or NotifyFullScreen)
+									TrayTip A_IconTip,, "Mute"
+							}
 							
 							if ConectStatus
 							{
-								if (SoundConectado != "none")
+								if (!NotifySoundFullScreen and !IsAppFullScreen or NotifySoundFullScreen)		
 								{
-									soundtoplayretraso := SoundToPlay.Bind(SoundConectado)
-									global RetrasoConectado
-									if (RetrasoConectado = 0)
-										retraso := -1
-									else
-										retraso := (RetrasoConectado * -1)
-								
-									SetTimer soundtoplayretraso, retraso
+									if (SoundConectado != "none")
+									{
+										soundtoplayretraso := SoundToPlay.Bind(SoundConectado)
+										global RetrasoConectado
+										if (RetrasoConectado = 0)
+											retraso := -1
+										else
+											retraso := (RetrasoConectado * -1)
+									
+										SetTimer soundtoplayretraso, retraso
+									}
 								}
-									
-								if NotiGifConectado
+								
+								if (!NotifyFullScreen and !IsAppFullScreen or NotifyFullScreen)		
 								{
-									global GifSelectedText1
-									global EfectoEntradaGif1
-									global PosVGif1
-									global UpDownEfectoEntradaGif1
-									global UpDownTiempoEntradaGif1
-									global EfectoSalidaGif1
-									global UpDownEfectoSalidaGif1
-									global BarradeTareasGif1
-									global NumberToGif := 1
-									
-									PlayGiftAction(GifSelectedText1, EfectoEntradaGif1, PosVGif1, UpDownEfectoEntradaGif1, UpDownTiempoEntradaGif1, EfectoSalidaGif1, UpDownEfectoSalidaGif1, BarradeTareasGif1)
+									if NotiGifConectado
+									{
+										global GifSelectedText1
+										global EfectoEntradaGif1
+										global PosVGif1
+										global UpDownEfectoEntradaGif1
+										global UpDownTiempoEntradaGif1
+										global EfectoSalidaGif1
+										global UpDownEfectoSalidaGif1
+										global BarradeTareasGif1
+										global NumberToGif := 1
+										
+										PlayGiftAction(GifSelectedText1, EfectoEntradaGif1, PosVGif1, UpDownEfectoEntradaGif1, UpDownTiempoEntradaGif1, EfectoSalidaGif1, UpDownEfectoSalidaGif1, BarradeTareasGif1)
+									}
 								}
 							}
 							else
 							{
-							if (SoundNacional != "none")
-								{
-									soundtoplayretraso := SoundToPlay.Bind(SoundNacional)
-									global RetrasoNacional
-									if (RetrasoNacional = 0)
-										retraso := -1
-									else
-										retraso := (RetrasoNacional * -1)
+								if (!NotifySoundFullScreen and !IsAppFullScreen or NotifySoundFullScreen)
+								{	
+									if (SoundNacional != "none")
+									{
+										soundtoplayretraso := SoundToPlay.Bind(SoundNacional)
+										global RetrasoNacional
+										if (RetrasoNacional = 0)
+											retraso := -1
+										else
+											retraso := (RetrasoNacional * -1)
 
-									SetTimer soundtoplayretraso, retraso
+										SetTimer soundtoplayretraso, retraso
+									}
 								}
-									
-								if NotiGifNacional
+								
+								if (!NotifyFullScreen and !IsAppFullScreen or NotifyFullScreen)
 								{
-									global GifSelectedText2
-									global EfectoEntradaGif2
-									global PosVGif2
-									global UpDownEfectoEntradaGif2
-									global UpDownTiempoEntradaGif2
-									global EfectoSalidaGif2
-									global UpDownEfectoSalidaGif2
-									global BarradeTareasGif2
-									global NumberToGif := 2
-									
-									PlayGiftAction(GifSelectedText2, EfectoEntradaGif2, PosVGif2, UpDownEfectoEntradaGif2, UpDownTiempoEntradaGif2, EfectoSalidaGif2, UpDownEfectoSalidaGif2, BarradeTareasGif2)
+									if NotiGifNacional
+									{
+										global GifSelectedText2
+										global EfectoEntradaGif2
+										global PosVGif2
+										global UpDownEfectoEntradaGif2
+										global UpDownTiempoEntradaGif2
+										global EfectoSalidaGif2
+										global UpDownEfectoSalidaGif2
+										global BarradeTareasGif2
+										global NumberToGif := 2
+										
+										PlayGiftAction(GifSelectedText2, EfectoEntradaGif2, PosVGif2, UpDownEfectoEntradaGif2, UpDownTiempoEntradaGif2, EfectoSalidaGif2, UpDownEfectoSalidaGif2, BarradeTareasGif2)
+									}
 								}
 							}
 						}
@@ -5290,34 +5382,41 @@ VerefyConx()
 								}
 							}
 							
-							if NotiDesconectado
-								TrayTip A_IconTip,, "Mute"
-
-							if (SoundDesconectado != "none")
+							if (!NotifyFullScreen and !IsAppFullScreen or NotifyFullScreen)
 							{
-								soundtoplayretraso := SoundToPlay.Bind(SoundDesconectado)
-								global RetrasoDesconectado 
-								if (RetrasoDesconectado = 0)
-									retraso := -1
-								else
-									retraso := (RetrasoDesconectado * -1)
-
-								SetTimer soundtoplayretraso, retraso
+								if NotiDesconectado
+									TrayTip A_IconTip,, "Mute"
+							
+								if NotiGifDesconectado
+								{
+									global GifSelectedText3
+									global EfectoEntradaGif3
+									global PosVGif3
+									global UpDownEfectoEntradaGif3
+									global UpDownTiempoEntradaGif3
+									global EfectoSalidaGif3
+									global UpDownEfectoSalidaGif3
+									global BarradeTareasGif3
+									global NumberToGif := 3
+									
+									PlayGiftAction(GifSelectedText3, EfectoEntradaGif3, PosVGif3, UpDownEfectoEntradaGif3, UpDownTiempoEntradaGif3, EfectoSalidaGif3, UpDownEfectoSalidaGif3, BarradeTareasGif3)
+								}	
 							}
-								
-							if NotiGifDesconectado
+							
+							
+							if (!NotifySoundFullScreen and !IsAppFullScreen or NotifySoundFullScreen)
 							{
-								global GifSelectedText3
-								global EfectoEntradaGif3
-								global PosVGif3
-								global UpDownEfectoEntradaGif3
-								global UpDownTiempoEntradaGif3
-								global EfectoSalidaGif3
-								global UpDownEfectoSalidaGif3
-								global BarradeTareasGif3
-								global NumberToGif := 3
-								
-								PlayGiftAction(GifSelectedText3, EfectoEntradaGif3, PosVGif3, UpDownEfectoEntradaGif3, UpDownTiempoEntradaGif3, EfectoSalidaGif3, UpDownEfectoSalidaGif3, BarradeTareasGif3)
+								if (SoundDesconectado != "none")
+								{
+									soundtoplayretraso := SoundToPlay.Bind(SoundDesconectado)
+									global RetrasoDesconectado 
+									if (RetrasoDesconectado = 0)
+										retraso := -1
+									else
+										retraso := (RetrasoDesconectado * -1)
+
+									SetTimer soundtoplayretraso, retraso
+								}
 							}
 						}
 						break
@@ -5375,36 +5474,41 @@ VerefyConx()
 					}
 				}
 				
-				if NotiError
-					TrayTip LenguajeList.Mensajes["IconTip10"],, "Mute"
-			
-
-				if (SoundError != "none")
+				if (!NotifyFullScreen and !IsAppFullScreen or NotifyFullScreen)
 				{
-					soundtoplayretraso := SoundToPlay.Bind(SoundError)
-					global RetrasoError 
-					if (RetrasoError = 0)
-						retraso := -1
-					else
-						retraso := (RetrasoError * -1)
-
-					SetTimer soundtoplayretraso, retraso
+					if NotiError
+						TrayTip LenguajeList.Mensajes["IconTip10"],, "Mute"
+						
+					
+					if NotiGifError
+					{
+						global GifSelectedText4
+						global EfectoEntradaGif4
+						global PosVGif4
+						global UpDownEfectoEntradaGif4
+						global UpDownTiempoEntradaGif4
+						global EfectoSalidaGif4
+						global UpDownEfectoSalidaGif4
+						global BarradeTareasGif4
+						global NumberToGif := 4
+						
+						PlayGiftAction(GifSelectedText4, EfectoEntradaGif4, PosVGif4, UpDownEfectoEntradaGif4, UpDownTiempoEntradaGif4, EfectoSalidaGif4, UpDownEfectoSalidaGif4, BarradeTareasGif4)
+					}
 				}
 				
-					
-				if NotiGifError
+				if (!NotifySoundFullScreen and !IsAppFullScreen or NotifySoundFullScreen)
 				{
-					global GifSelectedText4
-					global EfectoEntradaGif4
-					global PosVGif4
-					global UpDownEfectoEntradaGif4
-					global UpDownTiempoEntradaGif4
-					global EfectoSalidaGif4
-					global UpDownEfectoSalidaGif4
-					global BarradeTareasGif4
-					global NumberToGif := 4
-					
-					PlayGiftAction(GifSelectedText4, EfectoEntradaGif4, PosVGif4, UpDownEfectoEntradaGif4, UpDownTiempoEntradaGif4, EfectoSalidaGif4, UpDownEfectoSalidaGif4, BarradeTareasGif4)
+					if (SoundError != "none")
+					{
+						soundtoplayretraso := SoundToPlay.Bind(SoundError)
+						global RetrasoError 
+						if (RetrasoError = 0)
+							retraso := -1
+						else
+							retraso := (RetrasoError * -1)
+
+						SetTimer soundtoplayretraso, retraso
+					}
 				}
 			}
 		}
